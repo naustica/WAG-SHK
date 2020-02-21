@@ -1,0 +1,741 @@
+---
+title: "Open Access Evidence in Unpaywall using Python"
+description: |
+   This is a description.   
+author: 
+  - Nick Haupka
+date: "`r Sys.Date()`"
+output: distill::distill_article
+---
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+knitr::opts_chunk$set(
+  comment = "#>",
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  echo = TRUE
+)
+```
+
+In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different data dumps obtained from [Unpaywall](https://unpaywall.org/). Since the article was published in May 7 2019, Unpaywall has released a new data dump with up-to-date informations about scholarly journal articles. So it is interesting to see, how the results of the previous blog article are impacted. For this post, we are using the Unpaywall data dump from November 2019.
+
+Although this work serves as a complete translation of the source code from R into Python, the main purpose was to update the results from the blog article.
+
+In order to query the Unpaywall dataset, which is stored in Google BigQuery, we used the [google-cloud-bigquery](https://googleapis.dev/python/bigquery/latest/index.html) package. By default, this package is not shipped with [pandas](https://pandas.pydata.org/). However, we recommend to use this package along with pandas to have a better experience. The major reason for this is, that the queried data can easily exported into a pandas DataFrame. 
+
+```{python}
+from google.cloud import bigquery
+import pandas as pd
+from matplotlib import pyplot as plt
+import matplotlib.patches as mpatches
+import matplotlib.ticker as mtick
+import seaborn as sns
+import upsetplot
+```
+
+The setup for the Google BigQuery Python client is very simple. Firstly, we import bigquery from the google.cloud package and call the project name on the Client method. If we havn´t set our credentials for the Google Cloud service yet, Google asks us to verify our client. This can be done by simply export an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description, how to authenticate the client, can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that our project-database has restricted access.
+
+```{python echo=TRUE, results='hide'}
+client = bigquery.Client(project='api-project-764811344545')
+```
+
+According to the mentioned blog article, the used dataset has two tables, containing records between 2008 and 2018. For reusability, we defined two variables, which are holding the table names, to call them continuously in SQL queries. We are also using the improved string formatting syntax, which is a new feature since Python 3.6.
+
+```{python}
+# database snapshots
+upw_08_12 = '`oadoi_full.mongo_export_upwNov19_08_12`'
+upw_13_18 = '`oadoi_full.mongo_export_upwNov19_13_19`'
+```
+
+```{python}
+client.query(f"""
+            SELECT * 
+            FROM {upw_13_18} 
+            WHERE year=2018
+            AND genre="journal-article" 
+            LIMIT 10
+            """).to_dataframe()
+```
+
+## Open Access availability (is_oa)
+
+To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More imoprtantly, we investigate the open access share between these.
+
+```{python}
+oa_08_12 = client.query(f"""
+                        SELECT year, is_oa, COUNT(DISTINCT(doi)) AS n 
+                        FROM {upw_08_12} 
+                        WHERE genre="journal-article" 
+                        GROUP BY year, is_oa
+                        """).to_dataframe()
+
+oa_13_18 = client.query(f"""
+                        SELECT year, is_oa, COUNT(DISTINCT(doi)) AS n 
+                        FROM {upw_13_18} 
+                        WHERE year<2019 AND genre="journal-article" 
+                        GROUP BY year, is_oa
+                        """).to_dataframe()
+```
+
+```{python}
+df = pd.concat([oa_08_12, oa_13_18])
+df.year = pd.to_datetime(df.year.apply(lambda x: str(x) + "-01-01"))
+df['prop'] = df.groupby(['year'])['n'].transform(lambda x: x / x.sum())
+df = df.sort_values(by=['year']).reset_index(drop=True)
+df.head()
+```
+
+For visualization we are using [matplotlib](https://matplotlib.org/). Matplotlib is a common used plotting library for Python, that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more confortable when using essential matplotlib methods. Especially, when customizing the figure.
+
+```{python}
+# increase plot resolution
+plt.rcParams['figure.dpi'] = 600
+```
+
+```{python eval=FALSE}
+x = df.year.unique()
+y1 = df[df.is_oa == True].n
+y2 = df[df.is_oa == False].n
+
+plt.style.use('seaborn-whitegrid')
+plt.rcParams['figure.figsize'] = [10, 4]
+plt.grid(False, which='both', axis='x')
+plt.box(False)
+plt.stackplot(x, y1, y2, colors=['#56B4E9', '#b3b3b3a0'], alpha=0.8)
+plt.title('Open Access to Journal Articles', fontdict={'fontsize': 15, 'fontweight': 600}, \
+          pad=20)
+plt.xlabel('Year published', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
+plt.ylabel('Journal Articles', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
+is_oa_patch = mpatches.Patch(color='#56B4E9', label='TRUE')
+is_not_oa_patch = mpatches.Patch(color='#b3b3b3a0', label='FALSE')
+plt.legend(handles=[is_oa_patch, is_not_oa_patch], title='Is OA?', \
+           fontsize='medium', bbox_to_anchor=(1.2, 1.05), labelspacing=1.2)
+
+plt.tight_layout()
+
+plt.show()
+```
+
+```{r echo=FALSE, layout='l-page'}
+knitr::include_graphics('./media/figures/1.png', dpi=NA)
+```
+
+As expected, the total number of journal articles has increased, compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from November 2019 has increased by 2% in comparison to the February 2019 data dump used in the original blog post. In addition, the share of open access articles has increased by 6%. Overall, 13,569,137 freely available articles were published between 2008 and 2018. 
+
+## Unpaywall Open Access Hosting Types (host_type)
+
+Next, we investigate the differences between the distribution of the host types specified in the data dumps. As mentioned in the blog article, the host type variable is defined by Unpaywall’s algorithm. 
+
+```{python}
+HOST_TYPE_08_12_QUERY = f"""
+                        SELECT year, host_type, journal_is_in_doaj, 
+                            COUNT(DISTINCT(doi)) AS number_of_articles 
+                        FROM {upw_08_12}, UNNEST (oa_locations) 
+                        WHERE genre="journal-article" AND is_best=true 
+                        GROUP BY year, host_type, journal_is_in_doaj
+                        """
+
+HOST_TYPE_13_18_QUERY = f"""
+                        SELECT year, host_type, journal_is_in_doaj, 
+                            COUNT(DISTINCT(doi)) AS number_of_articles 
+                        FROM {upw_13_18}, UNNEST (oa_locations) 
+                        WHERE genre="journal-article" AND year<2019 AND is_best=true 
+                        GROUP BY year, host_type, journal_is_in_doaj
+                        """
+```
+
+```{python}
+host_type_08_12_query_df = client.query(HOST_TYPE_08_12_QUERY).to_dataframe()
+host_type_13_18_query_df = client.query(HOST_TYPE_13_18_QUERY).to_dataframe()
+
+host_type_df = pd.concat([host_type_08_12_query_df, host_type_13_18_query_df])
+host_type_df.year = pd.to_datetime(host_type_df.year.apply(lambda x: str(x) + "-01-01"))
+host_type_df = host_type_df.sort_values(by=['year']).reset_index(drop=True)
+
+host_type_df.loc[host_type_df['host_type'] == 'publisher', 'host'] = 'Other Journals'
+host_type_df.loc[host_type_df['host_type'] == 'repository', 'host'] = 'Repositories only'
+host_type_df.loc[host_type_df['journal_is_in_doaj'] == True, 'host'] = 'DOAJ-listed Journal'
+
+host_type_df.head()
+```
+
+```{python}
+all_articles = host_type_df.groupby(['year'])['number_of_articles'].sum() \
+                            .reset_index(name='number_of_articles')
+```
+
+```{python eval=FALSE}
+x = all_articles['year'].dt.year
+y_total = all_articles.number_of_articles
+
+plt.style.use('seaborn-whitegrid')
+plt.rcParams['figure.figsize'] = [11, 3.5]
+
+fig,(axes) = plt.subplots(nrows=1, ncols=3)
+
+fig.suptitle('Open Access to Journal Articles by Unpaywall host', fontsize=16, y=1.10)
+
+for i, host in enumerate(host_type_df.host.unique(), 1):
+    
+    ax = plt.subplot(1,3,i)
+    y_stacked = host_type_df[host_type_df.host==host] \
+                    .groupby(['year'])['number_of_articles'].sum() \
+                    .reset_index(name='number_of_articles').number_of_articles
+    ax.bar(x, y_total, color='#b3b3b3a0')
+    ax.bar(x, y_stacked, color='#56B4E9')
+    ax.set_title(host, fontdict={'fontsize': 12, 'fontweight': 500})
+
+    ax.set_frame_on(False)
+    ax.grid(False, which='both', axis='x')
+
+    if i > 1:
+        ax.set_yticklabels([], visible=False)
+        
+# common xlabel   
+fig.text(0.45, -0.03, 'Year', ha='center', 
+         fontdict={'fontsize': 13, 'fontweight': 500})
+
+# common ylabel
+fig.text(-0.02, 0.5, 'OA Articles (Total)', va='center', rotation='vertical', 
+         fontdict={'fontsize': 13, 'fontweight': 500})
+
+by_host_patch = mpatches.Patch(color='#56B4E9', label='by Host')
+all_oa_patch = mpatches.Patch(color='#b3b3b3a0', label='All OA Articles')
+plt.legend(handles=[all_oa_patch, by_host_patch], fontsize='medium', \
+           bbox_to_anchor=(1.05, 0.9), labelspacing=1.2)
+
+fig.tight_layout()
+
+plt.show()
+```
+
+```{r echo=FALSE, layout='l-page'}
+knitr::include_graphics('./media/figures/2.png', dpi=NA)
+```
+
+As can be seen from the figure, the proportion of open access articles that are accessible through journals which are not listed in DOAJ had rapidly increased in the year 2018 in comparison to the previous results. Nonetheless, the overall share of articles obtained from Journals, that are not listed in DOAJ has decreased from 56% to 47%. Consequently, the share of open access articles provided by DOAJ-listed journals has increased. 
+
+## Unpaywall Open Access Evidence Types (evidence)
+
+In the following, we explore varietes between the evidence types of the two data dumps. The evidence type is a variable determined by Unpaywall, which expresses the location, in that an article was found and how Unpaywall was able to identify, that the status of an article is open access.
+
+```{python}
+EVIDENCE_08_12_QUERY = f"""
+                        SELECT evidence, year, is_best, 
+                            COUNT(distinct(doi)) AS number_of_articles 
+                        FROM {upw_08_12}, UNNEST (oa_locations) 
+                        WHERE genre="journal-article" 
+                        GROUP BY evidence, year, is_best
+                        """
+
+EVIDENCE_13_18_QUERY = f"""
+                        SELECT evidence, year, is_best, 
+                            COUNT(distinct(doi)) AS number_of_articles 
+                        FROM {upw_13_18}, UNNEST (oa_locations) 
+                        WHERE genre="journal-article" AND year < 2019 
+                        GROUP BY evidence, year, is_best
+                        """
+```
+
+```{python}
+evidence_08_12 = client.query(EVIDENCE_08_12_QUERY).to_dataframe()
+evidence_13_18 = client.query(EVIDENCE_13_18_QUERY).to_dataframe()
+```
+
+```{python}
+evidence_df = pd.concat([evidence_08_12, evidence_13_18])
+evidence_df.year = pd.to_datetime(evidence_df.year.apply(lambda x: str(x) + "-01-01"))
+
+evidence_df.head()
+```
+
+```{python}
+articles_per_type_df = evidence_df.groupby(['evidence']).number_of_articles \
+                        .sum() \
+                        .to_frame() \
+                        .reset_index() \
+                        .sort_values(by=['number_of_articles'], ascending=False) \
+                        .reset_index(drop=True)
+    
+articles_per_type_df['prop'] = articles_per_type_df['number_of_articles'] \
+                                .transform(lambda x: 
+                                           x / articles_per_type_df['number_of_articles'] \
+                                           .sum() * 100)
+
+articles_per_type_df['cumul'] = articles_per_type_df.prop.cumsum()
+
+articles_per_type_table = articles_per_type_df.copy()
+articles_per_type_table.prop = articles_per_type_table.prop \
+                                    .apply(lambda x: '{0:.2f}'.format(x))
+
+articles_per_type_table.cumul = articles_per_type_table.cumul \
+                                    .apply(lambda x: '{0:.2f}'.format(x))
+
+articles_per_type_table.columns = ['Evidence Types', 
+                                   'Number of Articles', 
+                                   'Proportion of all Articles in %', 
+                                   'Cumulative Proportion in %']
+
+articles_per_type_table
+```
+
+```{python}
+sum_other = articles_per_type_df \
+                .loc[articles_per_type_df['prop'] < 1] \
+                .number_of_articles \
+                .sum()
+
+articles_per_type_other_df = pd.DataFrame([['other', sum_other]], 
+                                          columns=['evidence', 'number_of_articles'])
+
+articles_per_type_keep_df = articles_per_type_df.loc[articles_per_type_df['prop'] > 1]
+
+articles_per_type_grouped_df = pd.concat([articles_per_type_other_df, 
+                                          articles_per_type_keep_df])
+
+articles_per_type_grouped_df = articles_per_type_grouped_df \
+                                .groupby(['evidence']) \
+                                .number_of_articles.sum() \
+                                .to_frame().reset_index() \
+                                .sort_values(by=['number_of_articles'], ascending=False) \
+                                .reset_index(drop=True)
+
+articles_per_type_grouped_df['prop'] = articles_per_type_grouped_df['number_of_articles'] \
+                        .transform(lambda x: 
+                        x / articles_per_type_grouped_df['number_of_articles'].sum() * 100)
+
+articles_per_type_grouped_df['cumul'] = articles_per_type_grouped_df.prop.cumsum()
+```
+
+```{python}
+evidence_grouped_df = evidence_df.copy()
+
+list_of_small_evidence_types = articles_per_type_df \
+                                .loc[articles_per_type_df['prop'] < 1] \
+                                .evidence.tolist()
+
+evidence_grouped_df.evidence = evidence_grouped_df \
+                                .evidence.replace(list_of_small_evidence_types, 'other')
+
+evidence_grouped_df = evidence_grouped_df.groupby(['evidence', 'is_best', 'year']) \
+                                .number_of_articles.sum() \
+                                .to_frame().reset_index() \
+                                .sort_values(by=['number_of_articles'], ascending=False) \
+                                .reset_index(drop=True)
+```
+
+```{python eval=FALSE}
+evidence_grouped_plot_df = evidence_grouped_df \
+                            .groupby(['evidence', 'is_best']) \
+                            .number_of_articles.sum() \
+                            .to_frame().reset_index() \
+                            .sort_values(by=['number_of_articles'], ascending=True) \
+                            .reset_index(drop=True)
+
+articles_per_type_grouped_plot_df = articles_per_type_grouped_df \
+                                    .sort_values(by=['number_of_articles'], ascending=True) \
+                                    .reset_index(drop=True)
+
+y1 = articles_per_type_grouped_plot_df.evidence
+x_total = articles_per_type_grouped_plot_df.number_of_articles
+x_stacked = evidence_grouped_plot_df[evidence_grouped_plot_df.is_best == True] \
+                        .set_index('evidence') \
+                        .reindex(index=articles_per_type_grouped_plot_df['evidence']) \
+                        .reset_index().number_of_articles
+
+plt.style.use('seaborn-whitegrid')
+plt.rcParams['figure.figsize'] = [7, 5]
+plt.grid(False, which='both', axis='y')
+plt.box(False)
+
+ax1 = plt.barh(y1, x_total, color='#b3b3b3a0')
+ax2 = plt.barh(y1, x_stacked, color='#56B4E9')
+
+plt.title('Number of Open Access Articles per Unpaywall Evidence Type', 
+          fontdict={'fontsize': 15, 'fontweight': 600}, pad=20)
+plt.xlabel('Number of Open Access Articles', labelpad=10, 
+           fontdict={'fontsize': 13, 'fontweight': 500})
+
+plt.ylabel('Evidence Type', labelpad=10, fontdict={'fontsize': 13, 'fontweight': 500})
+
+is_best_patch = mpatches.Patch(color='#56B4E9', label='TRUE')
+is_not_best_patch = mpatches.Patch(color='#b3b3b3a0', label='FALSE')
+plt.legend(handles=[is_best_patch, is_not_best_patch], title='Is best?', 
+           fontsize='medium', bbox_to_anchor=(1.2, 1.05), labelspacing=1.2)
+
+plt.show()
+```
+
+```{r echo=FALSE, layout='l-page'}
+knitr::include_graphics('./media/figures/3.png', dpi=NA)
+```
+
+The figure provides two types of evidence that were not specifically mentioned in the previous work: 'oa repository (semantic scholar lookup)' and 'oa journal (via observed rate)'. Apparently these evidence types are responsible for the overall increase in articles between the two data dumps from February and November 2019.
+
+```{python eval=FALSE}
+y1 = evidence_grouped_df.sort_values(by=['year'], ascending=True) \
+                        .reset_index(drop=False) \
+                        ['year'].dt.year.unique()
+
+plt.style.use('seaborn-whitegrid')
+
+fig, (axes) = plt.subplots(nrows=5, 
+                           ncols=2, 
+                           sharex=True, 
+                           sharey=True, 
+                           figsize=(12,12))
+
+# get a one-dimensional array
+axes = axes.reshape(-1)
+
+fig.suptitle('Unpaywall Open Access Evidence Categories per Year', fontsize=16, y=1.05)
+
+for i, ax in enumerate(axes, 1):
+    
+    ax = plt.subplot(5,2,i, sharey=axes[0], sharex=axes[0])    
+    
+    if i % 2 == 0:
+        plt.setp(ax.get_yticklabels(), visible=False)
+    
+    evidence = evidence_grouped_df.evidence.unique()[i-1]
+
+    x_total = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
+                            .groupby(['year']) \
+                            .number_of_articles.sum() \
+                            .to_frame().reset_index() \
+                            .number_of_articles
+
+    x_stacked = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
+                            .loc[evidence_grouped_df.is_best == True] \
+                            .groupby(['year']) \
+                            .number_of_articles.sum() \
+                            .to_frame().reset_index() \
+                            .number_of_articles
+
+    ax = plt.bar(y1, x_total, color='#b3b3b3a0')
+    ax = plt.bar(y1, x_stacked, color='#56B4E9')
+    plt.title(evidence, fontdict={'fontsize': 12, 'fontweight': 500}, pad=0.2)
+    
+    plt.grid(False, which='both', axis='x')
+    plt.box(False)
+
+# common xlabel   
+fig.text(0.52, -0.03, 'Publication Year', ha='center', 
+         fontdict={'fontsize': 13, 'fontweight': 500})
+
+# common ylabel
+fig.text(-0.04, 0.5, 'Number of Open Access Articles', va='center', rotation='vertical', 
+         fontdict={'fontsize': 13, 'fontweight': 500})
+
+is_best_patch = mpatches.Patch(color='#56B4E9', label='TRUE')
+is_not_best_patch = mpatches.Patch(color='#b3b3b3a0', label='FALSE')
+fig.legend(handles=[is_best_patch, is_not_best_patch], title='Is best?', 
+           fontsize='large', title_fontsize='x-large', 
+           bbox_to_anchor=(1.15, 0.95), labelspacing=1.2)
+
+plt.tight_layout()
+
+plt.show()
+```
+
+```{r echo=FALSE, layout='l-page'}
+knitr::include_graphics('./media/figures/4.png', dpi=NA)
+```
+
+## Overlap of Open Access Provision and Evidence Types
+
+Owing to possible multiple associations between an article and evidence types in Unpaywall, we investigate in the next step the intersection between host types. Again, we compare the results with the previous results.
+
+```{python}
+HOST_TYPE_INTERSECT_08_12_QUERY = f"""
+                                    SELECT year, host_type_count, 
+                                        count(distinct(doi)) as number_of_articles 
+                                    FROM 
+                                        (SELECT doi, year,
+                                            STRING_AGG(DISTINCT(host_type) 
+                                        ORDER BY host_type) 
+                                        as host_type_count 
+                                        FROM {upw_08_12}, UNNEST (oa_locations)
+                                        WHERE genre="journal-article" 
+                                        GROUP BY doi, year) 
+                                    GROUP BY host_type_count, year 
+                                    ORDER BY number_of_articles desc
+                                    """
+
+HOST_TYPE_INTERSECT_13_18_QUERY = f"""
+                                    SELECT year, host_type_count, 
+                                        count(distinct(doi)) as number_of_articles 
+                                    FROM 
+                                        (SELECT doi, year, 
+                                        STRING_AGG(DISTINCT(host_type) 
+                                        ORDER BY host_type) as host_type_count
+                                        FROM {upw_13_18}, UNNEST (oa_locations) 
+                                        WHERE genre="journal-article" AND year < 2019 
+                                        GROUP BY doi, year) 
+                                    GROUP BY host_type_count, year 
+                                    ORDER BY number_of_articles desc
+                                    """
+```
+
+```{python}
+host_type_08_12_intersect_df = client.query(HOST_TYPE_INTERSECT_08_12_QUERY).to_dataframe()
+host_type_13_18_intersect_df = client.query(HOST_TYPE_INTERSECT_13_18_QUERY).to_dataframe()
+host_type_intersect_df = pd.concat([host_type_08_12_intersect_df, 
+                                    host_type_13_18_intersect_df])
+
+host_type_intersect_df.year = pd.to_datetime(host_type_intersect_df.year \
+                                             .apply(lambda x: str(x) + "-01-01"))
+
+host_type_intersect_df \
+    .loc[host_type_intersect_df['host_type_count'] == 'publisher', 'host'] = 'Publisher only'
+host_type_intersect_df \
+    .loc[host_type_intersect_df['host_type_count'] == 'publisher,repository', 
+         'host'] = 'Publisher & Repository'
+host_type_intersect_df \
+    .loc[host_type_intersect_df['host_type_count'] == 'repository', 
+         'host'] = 'Repositories only'
+```
+
+```{python}
+articles_total_by_year_df = df.groupby(['year']).n.sum().to_frame().reset_index()
+articles_total_by_year_df.columns = ['year', 'all_articles']
+
+host_type_intersect_df = pd.merge(articles_total_by_year_df, 
+                                  host_type_intersect_df, on='year', how='right')
+
+host_type_intersect_df = host_type_intersect_df.groupby(['year', 'host']) \
+                                    .sum().eval('prop = number_of_articles/all_articles') \
+                                    .reset_index()
+
+host_type_intersect_df.head()
+```
+
+```{python}
+host_type_all = host_type_intersect_df.copy()
+host_type_all['prop'] = host_type_intersect_df.groupby(['year'])['prop'] \
+                    .transform(lambda x: x.sum())
+```
+
+```{python eval=FALSE}
+x = host_type_intersect_df['year'].dt.year
+y = host_type_all.prop
+
+plt.style.use('seaborn-whitegrid')
+plt.rcParams['figure.figsize'] = [11, 3.5] 
+
+fig,(axes) = plt.subplots(nrows=1, ncols=3)
+
+fig.suptitle('Overlap between Open Access Host Types in Unpaywall', fontsize=16, y=1.10)
+    
+for i, host in enumerate(host_type_intersect_df.host.unique(), 1):
+    ax = plt.subplot(1,3,i)
+    y_stacked = host_type_intersect_df[host_type_intersect_df.host == host].prop
+    sns.barplot(x, y, color='#b3b3b3a0', alpha=0.8, saturation=1, ci=None)
+    sns.barplot(x, y_stacked, color='#56B4E9', alpha=1, saturation=1, ci=None)
+    ax.set_title(host, fontdict={'fontsize': 12, 'fontweight': 500})
+    
+    ax.set_frame_on(False)
+    ax.grid(False, which='both', axis='x')
+    ax.set(xlabel='', ylabel='')
+    for label in ax.get_xticklabels()[1::2]:
+        label.set_visible(False)
+        
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+    
+    if i > 1:
+        ax.set_yticklabels([], visible=False)
+        
+# common xlabel   
+fig.text(0.45, -0.03, 'Year', ha='center', 
+         fontdict={'fontsize': 13, 'fontweight': 500})
+
+# common ylabel
+fig.text(-0.02, 0.5, 'OA Share', va='center', rotation='vertical', 
+         fontdict={'fontsize': 13, 'fontweight': 500})
+    
+by_host_patch = mpatches.Patch(color='#56B4E9', label='by Host')
+all_oa_patch = mpatches.Patch(color='#b3b3b3a0', label='All OA Articles')
+plt.legend(handles=[all_oa_patch, by_host_patch], 
+           bbox_to_anchor=(1.05, 0.9), labelspacing=1.2)
+
+plt.tight_layout()
+
+plt.show()
+```
+
+```{r echo=FALSE, layout='l-page'}
+knitr::include_graphics('./media/figures/5.png', dpi=NA)
+```
+
+The figure shows, that in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 73% of all open access full-texts are available through publisher websites, which is a total of 9,970,245 articles. This is a decrease by almost 9% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 35%. Consequently, the proportion of articles that are available from both the publisher websites as well as those that are archived in a repository have increased from 26% to 39%.
+
+```{python}
+EVIDENCE_SINGLE_CAT_08_12_QUERY = f"""
+                                    SELECT ev_cat, COUNT(DISTINCT(doi)) AS number_of_articles
+                                    FROM 
+                                        (SELECT doi, STRING_AGG(DISTINCT(evidence), "&" 
+                                        ORDER BY evidence) AS ev_cat
+                                        FROM {upw_08_12}, UNNEST (oa_locations)
+                                        WHERE genre="journal-article"
+                                        GROUP BY doi
+                                        )
+                                    GROUP BY ev_cat
+                                   """
+
+EVIDENCE_SINGLE_CAT_13_18_QUERY = f"""
+                                    SELECT ev_cat, COUNT(DISTINCT(doi)) AS number_of_articles
+                                    FROM 
+                                        (SELECT doi, STRING_AGG(DISTINCT(evidence), "&" 
+                                        ORDER BY evidence) AS ev_cat
+                                        FROM {upw_13_18}, UNNEST (oa_locations)
+                                        WHERE genre="journal-article" AND year < 2019
+                                        GROUP BY doi
+                                        )
+                                    GROUP BY ev_cat
+                                   """
+```
+
+```{python}
+evidence_categories_08_12_df = client.query(EVIDENCE_SINGLE_CAT_08_12_QUERY).to_dataframe()
+evidence_categories_13_18_df = client.query(EVIDENCE_SINGLE_CAT_13_18_QUERY).to_dataframe()
+evidence_categories_df = pd.concat([evidence_categories_08_12_df, 
+                                    evidence_categories_13_18_df])
+
+evidence_categories_df = evidence_categories_df.groupby(['ev_cat']) \
+                                    .sum().reset_index() \
+                                    .sort_values(by=['number_of_articles'], ascending=False) \
+                                    .reset_index(drop=True)
+
+evidence_categories_df.head()
+```
+
+```{python}
+evidence_single_cat_df = evidence_df.groupby(['evidence']) \
+                                .number_of_articles.sum() \
+                                .reset_index()
+
+evidence_single_cat_df = pd.merge(evidence_single_cat_df, evidence_categories_df, 
+                                 how='left', left_on=['evidence'], right_on=['ev_cat']) \
+                                    .drop(['ev_cat'], axis=1) 
+evidence_single_cat_df.columns = ['evidence', 'number_of_articles', 'number_of_single_cat']
+```
+
+```{python}
+evidence_single_cat_df.evidence = evidence_single_cat_df \
+                                    .evidence.replace(list_of_small_evidence_types, 'other')
+
+evidence_single_cat_grouped_df = evidence_single_cat_df.groupby(['evidence']) \
+                                    .sum() \
+                                    .eval('prop = number_of_single_cat/number_of_articles') \
+                                    .reset_index() \
+                                    .sort_values(by=['number_of_articles'], ascending=False) \
+                                    .reset_index(drop=True)
+
+evidence_single_cat_grouped_df
+```
+
+```{python eval=FALSE}
+y1 = evidence_single_cat_grouped_df \
+                .sort_values(by=['number_of_articles'], ascending=True) \
+                .reset_index(drop=True).evidence
+
+x_total = evidence_single_cat_grouped_df.groupby(['evidence']) \
+                .number_of_articles.count() \
+                .to_frame().reset_index() \
+                .sort_values(by=['number_of_articles'], ascending=True) \
+                .reset_index(drop=True) \
+                .number_of_articles
+
+
+x_stacked = evidence_single_cat_grouped_df \
+                .sort_values(by=['number_of_articles'], ascending=True) \
+                .reset_index(drop=True) \
+                .prop
+
+fig, ax = plt.subplots(figsize=(7,5))
+
+plt.style.use('seaborn-whitegrid')
+#plt.rcParams['figure.figsize'] = [7, 5]
+plt.grid(False, which='both', axis='y')
+plt.box(False)
+
+ax1 = plt.barh(y1, x_total, color='#b3b3b3a0')
+ax2 = plt.barh(y1, x_stacked, color='#56B4E9')
+
+ax.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
+
+plt.title('Proportion of Articles per Evidence Type', 
+          fontdict={'fontsize': 15, 'fontweight': 600}, pad=20)
+plt.xlabel('Proportion of Articles', labelpad=10, 
+           fontdict={'fontsize': 13, 'fontweight': 500})
+
+plt.ylabel('Evidence Type', labelpad=10, fontdict={'fontsize': 13, 'fontweight': 500})
+
+is_unique_patch = mpatches.Patch(color='#56B4E9', label='TRUE')
+is_not_unique_patch = mpatches.Patch(color='#b3b3b3a0', label='FALSE')
+plt.legend(handles=[is_unique_patch, is_not_unique_patch], title='Is unique?', 
+           fontsize='medium', bbox_to_anchor=(1.2, 1.05), labelspacing=1.2)
+
+plt.show()
+```
+
+```{r echo=FALSE, layout='l-page'}
+knitr::include_graphics('./media/figures/6.png', dpi=NA)
+```
+
+```{python}
+evidence_categories_upset_df = evidence_categories_df.groupby(['ev_cat']) \
+                                        .sum().reset_index() \
+                                        .sort_values(by=['number_of_articles'], 
+                                                     ascending=False) \
+                                        .reset_index(drop=True)
+```
+
+```{python}
+# subset of fifteen most frequent evidence types
+evidence_categories_upset_most_frequent = evidence_categories_upset_df[:15]
+
+ev_list = evidence_categories_upset_most_frequent.ev_cat.tolist()
+ev_list = [ev.split('&') for ev in ev_list]
+n_list = evidence_categories_upset_most_frequent.number_of_articles.tolist()
+evidence_categories_upset_expr = upsetplot.from_memberships(ev_list, data=n_list)
+```
+
+```{python eval=FALSE}
+fig = plt.figure(figsize=(10,6))
+
+axes = upsetplot.UpSet(evidence_categories_upset_expr, 
+                sort_by='cardinality',
+                sort_categories_by='cardinality',
+                element_size=20, 
+                intersection_plot_elements=15, 
+                totals_plot_elements=7
+               ).plot(fig=fig)
+
+ax1 = axes['intersections']
+ax1.yaxis.grid(False)
+
+ax2 = axes['shading']
+
+ax3 = axes['matrix']
+
+ax4 = axes['totals']
+ax4.xaxis.grid(False)
+
+# reduce overlap with text
+plt.subplots_adjust(left=0, bottom=0, right=1.1, top=1, wspace=0, hspace=0)
+
+fig.text(0.1, -0.07, 'Set Size', ha='center', 
+         fontdict={'fontsize': 10, 'fontweight': 500})
+
+# delete shading axis for better readability
+fig.delaxes(ax2)
+    
+plt.show()
+```
+
+```{r echo=FALSE, layout='l-page'}
+knitr::include_graphics('./media/figures/7.png', dpi=NA)
+```
+
