@@ -1,7 +1,7 @@
 ---
 title: "Open Access Evidence in Unpaywall using Python"
 description: |
-   This is a description.   
+  Analyzing the open access status of scholarly articles is a task which many libraries, universities and researchers are      challenging. In this blog post, we discuss a Python based approach of analyzing journal articles using the Unpaywall database. In particular, we update the results from an existing blog article which used R.
 author: 
   - Nick Haupka
 date: "`r Sys.Date()`"
@@ -18,9 +18,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different data dumps obtained from [Unpaywall](https://unpaywall.org/). Since the article was published in May 7 2019, Unpaywall has released a new data dump with up-to-date informations about scholarly journal articles. So it is interesting to see, how the results of the previous blog article are impacted. For this post, we are using the Unpaywall data dump from November 2019.
+The [Unpaywall](https://unpaywall.org/) database is a collection of millions of scholarly fulltext articles, that were harvested from a variety of different repositories and services like [PubMed Central](https://www.ncbi.nlm.nih.gov/pmc/) and [DOAJ](https://doaj.org/). Although Unpaywall offers a REST API to query the Unpaywall database, it is more pleasant and efficient to use the provided [database snapshots](https://unpaywall.org/products/snapshot), which are usually relesaed twice a year.
 
-Although this work serves as a complete translation of the source code from R into Python, the main purpose was to update the results from the blog article.
+In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article was published in May 7 2019, Unpaywall has released a new data dump with up-to-date informations about scholarly journal articles. So it is interesting to see, how the results of the previous blog article are impacted. For this post, we are using the Unpaywall data dump from November 2019.
 
 In order to query the Unpaywall dataset, which is stored in Google BigQuery, we used the [google-cloud-bigquery](https://googleapis.dev/python/bigquery/latest/index.html) package. By default, this package is not shipped with [pandas](https://pandas.pydata.org/). However, we recommend to use this package along with pandas to have a better experience. The major reason for this is, that the queried data can easily exported into a pandas DataFrame. 
 
@@ -117,7 +117,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page'}
+```{r echo=FALSE, layout='l-page', fig.align='center'}
 knitr::include_graphics('./media/figures/1.png', dpi=NA)
 ```
 
@@ -210,7 +210,7 @@ fig.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page'}
+```{r echo=FALSE, layout='l-page', fig.align='center'}
 knitr::include_graphics('./media/figures/2.png', dpi=NA)
 ```
 
@@ -218,7 +218,7 @@ As can be seen from the figure, the proportion of open access articles that are 
 
 ## Unpaywall Open Access Evidence Types (evidence)
 
-In the following, we explore varietes between the evidence types of the two data dumps. The evidence type is a variable determined by Unpaywall, which expresses the location, in that an article was found and how Unpaywall was able to identify, that the status of an article is open access.
+In the following, we explore varietes between the evidence types of the two data dumps. The evidence type is a variable determined by Unpaywall, which expresses the location, in that an article was found and how Unpaywall was able to identify the open access status of an article.
 
 ```{python}
 EVIDENCE_08_12_QUERY = f"""
@@ -276,9 +276,37 @@ articles_per_type_table.columns = ['Evidence Types',
                                    'Number of Articles', 
                                    'Proportion of all Articles in %', 
                                    'Cumulative Proportion in %']
+```
 
+```{python eval=FALSE}
 articles_per_type_table
 ```
+
+```{python include=FALSE, layout='l-page'}
+print(articles_per_type_table.to_markdown())
+```
+
+|    | Evidence Types                                           |   Number of Articles |   Proportion of all Articles in % |   Cumulative Proportion in % |
+|---:|:---------------------------------------------------------|---------------------:|----------------------------------:|-----------------------------:|
+|  0 | oa repository (semantic scholar lookup)                  |              5759641 |                             20.12 |                        20.12 |
+|  1 | oa repository (via OAI-PMH doi match)                    |              4467382 |                             15.6  |                        35.72 |
+|  2 | open (via free pdf)                                      |              4427452 |                             15.47 |                        51.19 |
+|  3 | open (via page says license)                             |              3653314 |                             12.76 |                        63.95 |
+|  4 | oa journal (via doaj)                                    |              3577409 |                             12.5  |                        76.45 |
+|  5 | oa repository (via pmcid lookup)                         |              3237547 |                             11.31 |                        87.75 |
+|  6 | oa repository (via OAI-PMH title and first author match) |              1699654 |                              5.94 |                        93.69 |
+|  7 | oa journal (via observed oa rate)                        |               781574 |                              2.73 |                        96.42 |
+|  8 | open (via crossref license)                              |               594003 |                              2.07 |                        98.5  |
+|  9 | open (via page says Open Access)                         |               101344 |                              0.35 |                        98.85 |
+| 10 | open (via free article)                                  |               100145 |                              0.35 |                        99.2  |
+| 11 | oa journal (via publisher name)                          |                74618 |                              0.26 |                        99.46 |
+| 12 | open (via crossref license, author manuscript)           |                64929 |                              0.23 |                        99.69 |
+| 13 | oa repository (via OAI-PMH title match)                  |                51979 |                              0.18 |                        99.87 |
+| 14 | oa repository (via OAI-PMH title and last author match)  |                37218 |                              0.13 |                       100    |
+| 15 | oa journal (via issn in doaj)                            |                  392 |                              0    |                       100    |
+| 16 | manual                                                   |                   27 |                              0    |                       100    |
+| 17 | hybrid (via page says license)                           |                    1 |                              0    |                       100    |
+
 
 ```{python}
 sum_other = articles_per_type_df \
@@ -367,7 +395,7 @@ plt.legend(handles=[is_best_patch, is_not_best_patch], title='Is best?',
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page'}
+```{r echo=FALSE, layout='l-page', fig.align='center'}
 knitr::include_graphics('./media/figures/3.png', dpi=NA)
 ```
 
@@ -439,7 +467,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page'}
+```{r echo=FALSE, layout='l-page', fig.align='center'}
 knitr::include_graphics('./media/figures/4.png', dpi=NA)
 ```
 
@@ -517,6 +545,8 @@ host_type_all['prop'] = host_type_intersect_df.groupby(['year'])['prop'] \
                     .transform(lambda x: x.sum())
 ```
 
+This time we are using the [seaborn](https://seaborn.pydata.org/index.html) package for generating bar plots. Seaborn is a visualization library which is build on top of matplotlib. It is well designed to fit with pandas DataFrames and it also enables smoother plots. Also, we can continue to use matplotlib methods.
+
 ```{python eval=FALSE}
 x = host_type_intersect_df['year'].dt.year
 y = host_type_all.prop
@@ -564,7 +594,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page'}
+```{r echo=FALSE, layout='l-page', fig.align='center'}
 knitr::include_graphics('./media/figures/5.png', dpi=NA)
 ```
 
@@ -680,9 +710,13 @@ plt.legend(handles=[is_unique_patch, is_not_unique_patch], title='Is unique?',
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page'}
+```{r echo=FALSE, layout='l-page', fig.align='center'}
 knitr::include_graphics('./media/figures/6.png', dpi=NA)
 ```
+
+To visualize the intersection of multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package, which is in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset) better maintained. It offers better support for pandas and is also well documented. Especially, the input format for the UpSet plot is well described.
+
+The input format can be generated with the `from_memberships` method. It accepts two parameters: a nested list with elements corresponding to a set and secondly a list containing additional data which has the same length as the nested list.
 
 ```{python}
 evidence_categories_upset_df = evidence_categories_df.groupby(['ev_cat']) \
@@ -735,7 +769,14 @@ fig.delaxes(ax2)
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page'}
+```{r echo=FALSE, layout='l-page', fig.align='center'}
 knitr::include_graphics('./media/figures/7.png', dpi=NA)
 ```
 
+## Discussion and Conclusion
+
+In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were capable to find 13,569,137 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019, which were described in the mentioned blog article. Thus we can interpret upcoming trends more precisely. 
+
+Based on the previous results, our analysis expose an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types, that were introduced in the latest database snapshot. Altogether, this suggests, that more articles left closed access and Unpaywall was able to link more DOI’s to articles found in the new introduced evidence types.
+
+Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact, that this work is based on tranlated R source code, we learned plenty of approaches to face upcoming data analysis projects. 
