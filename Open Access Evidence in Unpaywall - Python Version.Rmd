@@ -1,7 +1,7 @@
 ---
 title: "Open Access Evidence in Unpaywall using Python"
 description: |
-  Analyzing the open access status of scholarly articles is a task which many libraries, universities and researchers are      challenging. In this blog post, we discuss a Python based approach of analyzing journal articles using the Unpaywall database. In particular, we update the results from an existing blog article which used R.
+  Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.
 author: 
   - Nick Haupka
 date: "`r Sys.Date()`"
@@ -18,11 +18,11 @@ knitr::opts_chunk$set(
 )
 ```
 
-The [Unpaywall](https://unpaywall.org/) database is a collection of millions of scholarly fulltext articles, that were harvested from a variety of different repositories and services like [PubMed Central](https://www.ncbi.nlm.nih.gov/pmc/) and [DOAJ](https://doaj.org/). Although Unpaywall offers a REST API to query the Unpaywall database, it is more pleasant and efficient to use the provided [database snapshots](https://unpaywall.org/products/snapshot), which are usually relesaed twice a year.
+The [Unpaywall](https://unpaywall.org/) database is a collection of millions of scholarly fulltext articles that were harvested from a variety of different repositories and services like [PubMed Central](https://www.ncbi.nlm.nih.gov/pmc/) and [DOAJ](https://doaj.org/). Although Unpaywall offers a REST API to query the Unpaywall database, it is more pleasant and efficient to use the provided [database snapshots](https://unpaywall.org/products/snapshot), which are usually released twice a year.
 
-In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article was published in May 7 2019, Unpaywall has released a new data dump with up-to-date informations about scholarly journal articles. So it is interesting to see, how the results of the previous blog article are impacted. For this post, we are using the Unpaywall data dump from November 2019.
+In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article was published in May 7 2019, Unpaywall has released a new data dump with up-to-date information about scholarly journal articles. Therefore it might be interesting to see how the change in data impacts the results of our analysis compared to the previous blog article. For this post we are using the Unpaywall data dump from November 2019.
 
-In order to query the Unpaywall dataset, which is stored in Google BigQuery, we used the [google-cloud-bigquery](https://googleapis.dev/python/bigquery/latest/index.html) package. By default, this package is not shipped with [pandas](https://pandas.pydata.org/). However, we recommend to use this package along with pandas to have a better experience. The major reason for this is, that the queried data can easily exported into a pandas DataFrame. 
+In order to query the Unpaywall dataset, which is stored in Google BigQuery, we use the [google-cloud-bigquery](https://googleapis.dev/python/bigquery/latest/index.html) package. By default, this package is not shipped with [pandas](https://pandas.pydata.org/). However, we recommend to use this package along with pandas to have a better experience. The major reason for this being, that the queried data can easily be exported into a pandas DataFrame. 
 
 ```{python}
 from google.cloud import bigquery
@@ -34,13 +34,13 @@ import seaborn as sns
 import upsetplot
 ```
 
-The setup for the Google BigQuery Python client is very simple. Firstly, we import bigquery from the google.cloud package and call the project name on the Client method. If we havn´t set our credentials for the Google Cloud service yet, Google asks us to verify our client. This can be done by simply export an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description, how to authenticate the client, can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that our project-database has restricted access.
+The setup for the Google BigQuery Python client is very simple. Firstly, we import bigquery from the google.cloud package and call the project name on the Client method. If we didn´t set our credentials for the Google Cloud service yet, Google asks us to verify our client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that our project-database has restricted access.
 
 ```{python echo=TRUE, results='hide'}
 client = bigquery.Client(project='api-project-764811344545')
 ```
 
-According to the mentioned blog article, the used dataset has two tables, containing records between 2008 and 2018. For reusability, we defined two variables, which are holding the table names, to call them continuously in SQL queries. We are also using the improved string formatting syntax, which is a new feature since Python 3.6.
+According to the aforementioned blog article, the dataset being used has two tables, containing records between 2008 and 2018. For reusability, we define two variables which are holding the table´s names to call them continuously in SQL queries. We are also using the improved string formatting syntax which is a new feature since Python 3.6.
 
 ```{python}
 # database snapshots
@@ -60,7 +60,7 @@ client.query(f"""
 
 ## Open Access availability (is_oa)
 
-To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More imoprtantly, we investigate the open access share between these.
+To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More imoprtantly, we investigate the open access share between these two.
 
 ```{python}
 oa_08_12 = client.query(f"""
@@ -86,7 +86,7 @@ df = df.sort_values(by=['year']).reset_index(drop=True)
 df.head()
 ```
 
-For visualization we are using [matplotlib](https://matplotlib.org/). Matplotlib is a common used plotting library for Python, that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more confortable when using essential matplotlib methods. Especially, when customizing the figure.
+For visualization we are using [matplotlib](https://matplotlib.org/). Matplotlib is a commonly used plotting library for Python that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more confortable with using essential matplotlib methods. Especially, when customizing the figure.
 
 ```{python}
 # increase plot resolution
@@ -121,7 +121,7 @@ plt.show()
 knitr::include_graphics('./media/figures/1.png', dpi=NA)
 ```
 
-As expected, the total number of journal articles has increased, compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from November 2019 has increased by 2% in comparison to the February 2019 data dump used in the original blog post. In addition, the share of open access articles has increased by 6%. Overall, 13,569,137 freely available articles were published between 2008 and 2018. 
+As expected, the total number of journal articles has increased compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from November 2019 has increased by 2% in comparison to the February 2019 data dump used in the original blog post. In addition, the share of open access articles has increased by 6%. Overall, 13,569,137 freely available articles were published between 2008 and 2018. 
 
 ## Unpaywall Open Access Hosting Types (host_type)
 
@@ -214,11 +214,11 @@ plt.show()
 knitr::include_graphics('./media/figures/2.png', dpi=NA)
 ```
 
-As can be seen from the figure, the proportion of open access articles that are accessible through journals which are not listed in DOAJ had rapidly increased in the year 2018 in comparison to the previous results. Nonetheless, the overall share of articles obtained from Journals, that are not listed in DOAJ has decreased from 56% to 47%. Consequently, the share of open access articles provided by DOAJ-listed journals has increased. 
+As can be seen from the figure, the proportion of open access articles that are accessible through journals which are not listed in DOAJ has rapidly increased in the year 2018 in comparison to the previous results. Nonetheless, the overall share of articles obtained from Journals that are not listed in DOAJ has decreased from 56% to 47%. Consequently, the share of open access articles provided by DOAJ-listed journals has increased. 
 
 ## Unpaywall Open Access Evidence Types (evidence)
 
-In the following, we explore varietes between the evidence types of the two data dumps. The evidence type is a variable determined by Unpaywall, which expresses the location, in that an article was found and how Unpaywall was able to identify the open access status of an article.
+In the following, we explore varieties between the evidence types of the two data dumps. The evidence type is a variable determined by Unpaywall, which expresses the location at which an article was found and how Unpaywall was able to identify the open access status of an article.
 
 ```{python}
 EVIDENCE_08_12_QUERY = f"""
@@ -473,7 +473,7 @@ knitr::include_graphics('./media/figures/4.png', dpi=NA)
 
 ## Overlap of Open Access Provision and Evidence Types
 
-Owing to possible multiple associations between an article and evidence types in Unpaywall, we investigate in the next step the intersection between host types. Again, we compare the results with the previous results.
+Owing to possible multiple associations between an article and evidence types in Unpaywall, we investigate the intersection between host types in the next step. Again, we compare the results with the previous results.
 
 ```{python}
 HOST_TYPE_INTERSECT_08_12_QUERY = f"""
@@ -598,7 +598,7 @@ plt.show()
 knitr::include_graphics('./media/figures/5.png', dpi=NA)
 ```
 
-The figure shows, that in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 73% of all open access full-texts are available through publisher websites, which is a total of 9,970,245 articles. This is a decrease by almost 9% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 35%. Consequently, the proportion of articles that are available from both the publisher websites as well as those that are archived in a repository have increased from 26% to 39%.
+The figure shows, that in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 73% of all open access full-texts are available through publisher websites which is a total of 9,970,245 articles. This is a decrease by almost 9% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 35%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.
 
 ```{python}
 EVIDENCE_SINGLE_CAT_08_12_QUERY = f"""
@@ -714,7 +714,7 @@ plt.show()
 knitr::include_graphics('./media/figures/6.png', dpi=NA)
 ```
 
-To visualize the intersection of multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package, which is in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset) better maintained. It offers better support for pandas and is also well documented. Especially, the input format for the UpSet plot is well described.
+To visualize the intersection between multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package which is in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset) better maintained. It offers better support for pandas and is also well documented. Especially the input format for the UpSet plot is well described.
 
 The input format can be generated with the `from_memberships` method. It accepts two parameters: a nested list with elements corresponding to a set and secondly a list containing additional data which has the same length as the nested list.
 
@@ -775,8 +775,8 @@ knitr::include_graphics('./media/figures/7.png', dpi=NA)
 
 ## Discussion and Conclusion
 
-In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were capable to find 13,569,137 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019, which were described in the mentioned blog article. Thus we can interpret upcoming trends more precisely. 
+In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,569,137 scholarly articles in Unpaywall in the period from 2008 to 2018 that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thus we can interpret upcoming trends more precisely. 
 
-Based on the previous results, our analysis expose an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types, that were introduced in the latest database snapshot. Altogether, this suggests, that more articles left closed access and Unpaywall was able to link more DOI’s to articles found in the new introduced evidence types.
+Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the latest database snapshot. Altogether, this suggests that more articles left closed access and Unpaywall was able to link more DOI’s to articles found in the new introduced evidence types.
 
-Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact, that this work is based on tranlated R source code, we learned plenty of approaches to face upcoming data analysis projects. 
+Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on tranlated R source code, we learned plenty of approaches to face upcoming data analysis projects. 
