@@ -34,19 +34,21 @@ import seaborn as sns
 import upsetplot
 ```
 
-The setup for the Google BigQuery Python client is very simple. Firstly, we import bigquery from the google.cloud package and call the project name on the Client method. If we didn´t set our credentials for the Google Cloud service yet, Google asks us to verify our client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that our project-database has restricted access.
+The setup for the Google BigQuery Python client is very simple. Firstly, we import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If we didn´t set our credentials for the Google Cloud service yet, Google asks us to verify our client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that our project-database has restricted access.
 
 ```{python echo=TRUE, results='hide'}
 client = bigquery.Client(project='api-project-764811344545')
 ```
 
-According to the aforementioned blog article, the dataset being used has two tables, containing records between 2008 and 2018. For reusability, we define two variables which are holding the table´s names to call them continuously in SQL queries. We are also using the improved string formatting syntax which is a new feature since Python 3.6.
+According to the aforementioned blog article, the dataset being used has two tables, containing records between 2008 and 2018. For reusability, we define two variables which are holding the table´s names to call them in SQL queries. We are also using the improved string formatting syntax which is a new feature since Python 3.6.
 
 ```{python}
 # database snapshots
 upw_08_12 = '`oadoi_full.mongo_export_upwNov19_08_12`'
 upw_13_18 = '`oadoi_full.mongo_export_upwNov19_13_19`'
 ```
+
+We can query the project-database by using the `query` method on our created client object. In this example we were requesting ten journal articles that were published in 2018. We can pass the SQL query simple as a string into our `query` method. Next we can chain the `to_dataframe` method on our query to get a pandas DataFrame.
 
 ```{python}
 client.query(f"""
@@ -61,6 +63,8 @@ client.query(f"""
 ## Open Access availability (is_oa)
 
 To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More imoprtantly, we investigate the open access share between these two.
+
+Before we can calculate the open access proportion in our dataset, we query our database and count the number of distinct DOI´s by year and open access status. Since we have two tables, we need to concatenate our dataframes in the next step. Also we have to convert the column which contains the year from string to datetime. This allows us to handle date informations much better when visualizing data. After we calculate the proportion of open access by year, we sort the values by time.
 
 ```{python}
 oa_08_12 = client.query(f"""
@@ -86,9 +90,11 @@ df = df.sort_values(by=['year']).reset_index(drop=True)
 df.head()
 ```
 
-For visualization we are using [matplotlib](https://matplotlib.org/). Matplotlib is a commonly used plotting library for Python that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more confortable with using essential matplotlib methods. Especially, when customizing the figure.
+For visualization we are using [matplotlib](https://matplotlib.org/). Matplotlib is a commonly used plotting library for Python that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more comfortable with using essential matplotlib methods. Especially, when customizing the figure.
 
-```{python}
+In our first plot we visualize the open access share to journal articles over time. Whereas our plot is not interactive like in the stated blog article, we could make use of the same plotting library named Plotly which can be found [here](https://plot.ly/). Plotly is available for R, Javascript and Python.
+
+```{python include=FALSE}
 # increase plot resolution
 plt.rcParams['figure.dpi'] = 600
 ```
@@ -117,7 +123,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page', fig.align='center'}
+```{r echo=FALSE, layout='l-page', fig.cap='Open access to journal articles according to Unpaywall.', out.extra='style="margin-left: 4%;"'}
 knitr::include_graphics('./media/figures/1.png', dpi=NA)
 ```
 
@@ -125,7 +131,7 @@ As expected, the total number of journal articles has increased compared to the 
 
 ## Unpaywall Open Access Hosting Types (host_type)
 
-Next, we investigate the differences between the distribution of the host types specified in the data dumps. As mentioned in the blog article, the host type variable is defined by Unpaywall’s algorithm. 
+Next, we investigate the differences between the distribution of the host types specified in the data dumps. As mentioned in the blog article, the host type variable is determined by Unpaywall’s algorithm. 
 
 ```{python}
 HOST_TYPE_08_12_QUERY = f"""
@@ -210,7 +216,7 @@ fig.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page', fig.align='center'}
+```{r echo=FALSE, layout='l-page', fig.cap='Open access to journal articles by open access hosting location.', out.extra='style="margin-left: 4%;"'}
 knitr::include_graphics('./media/figures/2.png', dpi=NA)
 ```
 
@@ -282,9 +288,13 @@ articles_per_type_table.columns = ['Evidence Types',
 articles_per_type_table
 ```
 
-```{python include=FALSE, layout='l-page'}
+```{python include=FALSE}
 print(articles_per_type_table.to_markdown())
 ```
+
+::: l-page
+
+Table: Table 1: Number of articles per evidence type. 
 
 |    | Evidence Types                                           |   Number of Articles |   Proportion of all Articles in % |   Cumulative Proportion in % |
 |---:|:---------------------------------------------------------|---------------------:|----------------------------------:|-----------------------------:|
@@ -306,7 +316,7 @@ print(articles_per_type_table.to_markdown())
 | 15 | oa journal (via issn in doaj)                            |                  392 |                              0    |                       100    |
 | 16 | manual                                                   |                   27 |                              0    |                       100    |
 | 17 | hybrid (via page says license)                           |                    1 |                              0    |                       100    |
-
+:::
 
 ```{python}
 sum_other = articles_per_type_df \
@@ -395,7 +405,7 @@ plt.legend(handles=[is_best_patch, is_not_best_patch], title='Is best?',
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page', fig.align='center'}
+```{r echo=FALSE, layout='l-page', fig.cap='Number of articles per evidence type.', out.extra='style="margin-left: 3%;"'}
 knitr::include_graphics('./media/figures/3.png', dpi=NA)
 ```
 
@@ -467,7 +477,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page', fig.align='center'}
+```{r echo=FALSE, layout='l-page', fig.cap='Development of the number of articles per evidence type over time.', out.extra='style="margin-left: 4%;"'}
 knitr::include_graphics('./media/figures/4.png', dpi=NA)
 ```
 
@@ -594,7 +604,7 @@ plt.tight_layout()
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page', fig.align='center'}
+```{r echo=FALSE, layout='l-page', fig.cap='Open access to journal articles by open access hosting location.', out.extra='style="margin-left: 4%;"'}
 knitr::include_graphics('./media/figures/5.png', dpi=NA)
 ```
 
@@ -710,9 +720,11 @@ plt.legend(handles=[is_unique_patch, is_not_unique_patch], title='Is unique?',
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page', fig.align='center'}
+```{r echo=FALSE, layout='l-page', fig.cap='Proportion of articles per evidence type.', out.extra='style="margin-left: 3.5%;"'}
 knitr::include_graphics('./media/figures/6.png', dpi=NA)
 ```
+
+While openly forms of open access provision identified via pdf or license are still evidence types with the most often unique appearance, it can be seen that the share has decreased compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
 
 To visualize the intersection between multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package which is in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset) better maintained. It offers better support for pandas and is also well documented. Especially the input format for the UpSet plot is well described.
 
@@ -727,7 +739,7 @@ evidence_categories_upset_df = evidence_categories_df.groupby(['ev_cat']) \
 ```
 
 ```{python}
-# subset of fifteen most frequent evidence types
+# subset of fifteen most frequent distinct evidence types combinations
 evidence_categories_upset_most_frequent = evidence_categories_upset_df[:15]
 
 ev_list = evidence_categories_upset_most_frequent.ev_cat.tolist()
@@ -769,7 +781,7 @@ fig.delaxes(ax2)
 plt.show()
 ```
 
-```{r echo=FALSE, layout='l-page', fig.align='center'}
+```{r echo=FALSE, layout='l-page', fig.cap='Most frequent combinations of evidence types.', out.extra='style="margin-left: 2.5%;"'}
 knitr::include_graphics('./media/figures/7.png', dpi=NA)
 ```
 
