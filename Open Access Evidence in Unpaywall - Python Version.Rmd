@@ -62,9 +62,9 @@ client.query(f"""
 
 ## Open Access availability (is_oa)
 
-To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More imoprtantly, we investigate the open access share between these two.
+To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More importantly, we investigate the open access share between these two.
 
-Before we can calculate the open access proportion in our dataset, we query our database and count the number of distinct DOI´s by year and open access status. Since we have two tables, we need to concatenate our dataframes in the next step. Also we have to convert the column which contains the year from string to datetime. This allows us to handle date informations much better when visualizing data. After we calculate the proportion of open access by year, we sort the values by time.
+Before we can compute the open access proportion in our dataset, we query our database and count the number of distinct DOI´s by year and open access status. Since we have two tables, we need to concatenate our dataframes in the next step. Also we have to convert the column which contains the year from string to datetime. This allows us to handle date informations much better when visualizing data. After we calculate the proportion of open access by year, we sort the values by time.
 
 ```{python}
 oa_08_12 = client.query(f"""
@@ -131,7 +131,7 @@ As expected, the total number of journal articles has increased compared to the 
 
 ## Unpaywall Open Access Hosting Types (host_type)
 
-Next, we investigate the differences between the distribution of the host types specified in the data dumps. As mentioned in the blog article, the host type variable is determined by Unpaywall’s algorithm. 
+Next, we investigate the differences between the distribution of the host types specified in the data dumps. The host type describes the type of location that serves open access full-texts and accepts two values: `publisher` and `repository`. As mentioned in the blog article, the host type variable is determined by Unpaywall’s algorithm. 
 
 ```{python}
 HOST_TYPE_08_12_QUERY = f"""
@@ -151,6 +151,8 @@ HOST_TYPE_13_18_QUERY = f"""
                         """
 ```
 
+Like in the aforementioned blog article, we create a `host` column with the pandas provided `loc` method to highlight freely available full-texts provided by DOAJ in addition to the regular host types. Because DOAJ (Directory of Open Access) ensures high quality standards and peer reviews for their indexed journals, it might be interesting to see, wether an increase of publishing in potentially less strict open access journals can be observe. 
+
 ```{python}
 host_type_08_12_query_df = client.query(HOST_TYPE_08_12_QUERY).to_dataframe()
 host_type_13_18_query_df = client.query(HOST_TYPE_13_18_QUERY).to_dataframe()
@@ -166,12 +168,12 @@ host_type_df.loc[host_type_df['journal_is_in_doaj'] == True, 'host'] = 'DOAJ-lis
 host_type_df.head()
 ```
 
-```{python}
-all_articles = host_type_df.groupby(['year'])['number_of_articles'].sum() \
-                            .reset_index(name='number_of_articles')
-```
+Again, we visualize our data with matplotlib. Unlike ggplots for R, we have a more inconvenient way to prepare and plot our data in Python. This starts by iterating over the host types to generate a subplot for each. Although, we can make use of pandas plotting methods to display complicated graphics from DataFrames, it needs much effort to get publication quality figures.
 
 ```{python eval=FALSE}
+all_articles = host_type_df.groupby(['year'])['number_of_articles'].sum() \
+                            .reset_index(name='number_of_articles')
+
 x = all_articles['year'].dt.year
 y_total = all_articles.number_of_articles
 
@@ -256,6 +258,8 @@ evidence_df.year = pd.to_datetime(evidence_df.year.apply(lambda x: str(x) + "-01
 evidence_df.head()
 ```
 
+For each evidence type we calculate the total number of articles and the related proportion, as well as the cumulative proportion regarding to the number of all articles. Then we display the results in form of a table. To specify the precision of the resulting floating point numbers we again make use of the Python built in string formatting function. Here we specify 2 digits of accuracy.
+
 ```{python}
 articles_per_type_df = evidence_df.groupby(['evidence']).number_of_articles \
                         .sum() \
@@ -270,7 +274,9 @@ articles_per_type_df['prop'] = articles_per_type_df['number_of_articles'] \
                                            .sum() * 100)
 
 articles_per_type_df['cumul'] = articles_per_type_df.prop.cumsum()
+```
 
+```{python eval=FALSE}
 articles_per_type_table = articles_per_type_df.copy()
 articles_per_type_table.prop = articles_per_type_table.prop \
                                     .apply(lambda x: '{0:.2f}'.format(x))
@@ -282,13 +288,11 @@ articles_per_type_table.columns = ['Evidence Types',
                                    'Number of Articles', 
                                    'Proportion of all Articles in %', 
                                    'Cumulative Proportion in %']
-```
-
-```{python eval=FALSE}
+                                   
 articles_per_type_table
 ```
 
-```{python include=FALSE}
+```{python eval=FALSE, include=FALSE}
 print(articles_per_type_table.to_markdown())
 ```
 
@@ -317,6 +321,8 @@ Table: Table 1: Number of articles per evidence type.
 | 16 | manual                                                   |                   27 |                              0    |                       100    |
 | 17 | hybrid (via page says license)                           |                    1 |                              0    |                       100    |
 :::
+
+It is interessting to see, that the evidence type with the highest number of related articles was not included in the previous database snapshot.
 
 ```{python}
 sum_other = articles_per_type_df \
