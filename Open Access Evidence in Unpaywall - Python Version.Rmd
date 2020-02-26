@@ -18,9 +18,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-The [Unpaywall](https://unpaywall.org/) database is a collection of millions of scholarly fulltext articles that were harvested from a variety of different repositories and services like [PubMed Central](https://www.ncbi.nlm.nih.gov/pmc/) and [DOAJ](https://doaj.org/). Although Unpaywall offers a REST API to query the Unpaywall database, it is more pleasant and efficient to use the provided [database snapshots](https://unpaywall.org/products/snapshot), which are usually released twice a year.
+The [Unpaywall](https://unpaywall.org/) database is a collection of millions of scholarly fulltext articles that were harvested from a variety of different repositories and services like [PubMed Central](https://www.ncbi.nlm.nih.gov/pmc/) and [DOAJ](https://doaj.org/). Although Unpaywall offers a REST API to query the Unpaywall database, it is more convenient and efficient to use the provided [database snapshots](https://unpaywall.org/products/snapshot), which are usually released twice a year.
 
-In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article was published in May 7 2019, Unpaywall has released a new data dump with up-to-date information about scholarly journal articles. Therefore it might be interesting to see how the change in data impacts the results of our analysis compared to the previous blog article. For this post we are using the Unpaywall data dump from November 2019.
+In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article was published on May 7th, 2019, Unpaywall has recently released a new data dump with up-to-date information about scholarly journal articles. Therefore it might be interesting to see how the change in data impacts the results of our analysis compared to the previous blog article. For this post we are using the Unpaywall data dump from November 2019.
 
 In order to query the Unpaywall dataset, which is stored in Google BigQuery, we use the [google-cloud-bigquery](https://googleapis.dev/python/bigquery/latest/index.html) package. By default, this package is not shipped with [pandas](https://pandas.pydata.org/). However, we recommend to use this package along with pandas to have a better experience. The major reason for this being, that the queried data can easily be exported into a pandas DataFrame. 
 
@@ -48,7 +48,7 @@ upw_08_12 = '`oadoi_full.mongo_export_upwNov19_08_12`'
 upw_13_18 = '`oadoi_full.mongo_export_upwNov19_13_19`'
 ```
 
-We can query the project-database by using the `query` method on our created client object. In this example we were requesting ten journal articles that were published in 2018. We can pass the SQL query simple as a string into our `query` method. Next we can chain the `to_dataframe` method on our query to get a pandas DataFrame.
+We can query the project-database by using the `query` method on our created client object. In this example we were requesting ten journal articles that were published in 2018. We can pass the SQL query simply as a string into our `query` method. Next we can chain the `to_dataframe` method on our query to get a pandas DataFrame.
 
 ```{python}
 client.query(f"""
@@ -62,9 +62,9 @@ client.query(f"""
 
 ## Open Access availability (is_oa)
 
-To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More importantly, we investigate the open access share between these two.
+To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and November 2019. More importantly, we will investigate the open access share between these two.
 
-Before we can compute the open access proportion in our dataset, we query our database and count the number of distinct DOI´s by year and open access status. Since we have two tables, we need to concatenate our dataframes in the next step. Also we have to convert the column which contains the year from string to datetime. This allows us to handle date informations much better when visualizing data. After we calculate the proportion of open access by year, we sort the values by time.
+Before we can compute the open access proportion in our dataset, we must query our database and count the number of distinct DOI´s by year and open access status. Since we have two tables, we need to concatenate our dataframes in the next step. We also have to convert the column which contains the year from string to datetime. This allows us to handle date informations much better when visualizing data. After we have calculated the proportion of open access by year, we will now sort the values by time.
 
 ```{python}
 oa_08_12 = client.query(f"""
@@ -90,7 +90,7 @@ df = df.sort_values(by=['year']).reset_index(drop=True)
 df.head()
 ```
 
-For visualization we are using [matplotlib](https://matplotlib.org/). Matplotlib is a commonly used plotting library for Python that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more comfortable with using essential matplotlib methods. Especially, when customizing the figure.
+For visualization, we are using [matplotlib](https://matplotlib.org/). Matplotlib is a commonly used plotting library for Python that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more comfortable with using essential matplotlib methods. Especially, when customizing the figure.
 
 In our first plot we visualize the open access share to journal articles over time. Whereas our plot is not interactive like in the stated blog article, we could make use of the same plotting library named Plotly which can be found [here](https://plot.ly/). Plotly is available for R, Javascript and Python.
 
@@ -151,7 +151,7 @@ HOST_TYPE_13_18_QUERY = f"""
                         """
 ```
 
-Like in the aforementioned blog article, we create a `host` column with the pandas provided `loc` method to highlight freely available full-texts provided by DOAJ in addition to the regular host types. Because DOAJ (Directory of Open Access) ensures high quality standards and peer reviews for their indexed journals, it might be interesting to see, wether an increase of publishing in potentially less strict open access journals can be observe. 
+Like in the aforementioned blog article, we create a `host` column with the pandas provided `loc` method to highlight freely available full-texts provided by DOAJ in addition to the regular host types. Because DOAJ ensures high quality standards and peer reviews for their indexed journals, it might be interesting to see whether an increase of publishing in potentially less strict open access journals can be observed or not. 
 
 ```{python}
 host_type_08_12_query_df = client.query(HOST_TYPE_08_12_QUERY).to_dataframe()
@@ -168,7 +168,7 @@ host_type_df.loc[host_type_df['journal_is_in_doaj'] == True, 'host'] = 'DOAJ-lis
 host_type_df.head()
 ```
 
-Again, we visualize our data with matplotlib. Unlike ggplots for R, we have a more inconvenient way to prepare and plot our data in Python. This starts by iterating over the host types to generate a subplot for each. Although, we can make use of pandas plotting methods to display complicated graphics from DataFrames, it needs much effort to get publication quality figures.
+Again, we visualize our data with matplotlib. Unlike ggplots for R, we have a more inconvenient way to prepare and plot our data in Python. This starts by iterating over the host types to generate a subplot for each. Although, we can make use of pandas plotting methods to display complicated graphics from DataFrames, it requires much effort to get publication quality figures.
 
 ```{python eval=FALSE}
 all_articles = host_type_df.groupby(['year'])['number_of_articles'].sum() \
@@ -258,7 +258,7 @@ evidence_df.year = pd.to_datetime(evidence_df.year.apply(lambda x: str(x) + "-01
 evidence_df.head()
 ```
 
-For each evidence type we calculate the total number of articles and the related proportion, as well as the cumulative proportion regarding to the number of all articles. Then we display the results in form of a table. To specify the precision of the resulting floating point numbers we again make use of the Python built in string formatting function. Here we specify 2 digits of accuracy.
+For each evidence type we calculate the total number of articles and the related proportion, as well as the cumulative proportion regarding to the number of all articles. Then we display the results in form of a table. To specify the precision of the resulting floating point numbers we again make use of the Python built-in string formatting function. Here we specify by 2 digits of accuracy.
 
 ```{python}
 articles_per_type_df = evidence_df.groupby(['evidence']).number_of_articles \
@@ -322,7 +322,7 @@ Table: Table 1: Number of articles per evidence type.
 | 17 | hybrid (via page says license)                           |                    1 |                              0    |                       100    |
 :::
 
-It is interessting to see, that the evidence type with the highest number of related articles was not included in the previous database snapshot.
+Interestingly, the evidence type with the highest number of related articles was not included in the previous database snapshot.
 
 ```{python}
 sum_other = articles_per_type_df \
@@ -415,7 +415,7 @@ plt.show()
 knitr::include_graphics('./media/figures/3.png', dpi=NA)
 ```
 
-The figure provides two types of evidence that were not specifically mentioned in the previous work: 'oa repository (semantic scholar lookup)' and 'oa journal (via observed rate)'. Apparently these evidence types are responsible for the overall increase in articles between the two data dumps from February and November 2019.
+The figure provides two types of evidence that were not specifically mentioned in the previous work: 'oa repository (semantic scholar lookup)' and 'oa journal (via observed rate)'. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February and November 2019.
 
 ```{python eval=FALSE}
 y1 = evidence_grouped_df.sort_values(by=['year'], ascending=True) \
@@ -614,7 +614,7 @@ plt.show()
 knitr::include_graphics('./media/figures/5.png', dpi=NA)
 ```
 
-The figure shows, that in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 73% of all open access full-texts are available through publisher websites which is a total of 9,970,245 articles. This is a decrease by almost 9% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 35%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.
+The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 73% of all open access full-texts are available through publisher websites which is a total of 9,970,245 articles. This is a decrease by almost 9% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 35%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.
 
 ```{python}
 EVIDENCE_SINGLE_CAT_08_12_QUERY = f"""
@@ -730,9 +730,9 @@ plt.show()
 knitr::include_graphics('./media/figures/6.png', dpi=NA)
 ```
 
-While openly forms of open access provision identified via pdf or license are still evidence types with the most often unique appearance, it can be seen that the share has decreased compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
+While openly forms of open access provision identified via pdf or license are still evidence types with a most often unique appearance, it can be seen that the share has decreased, compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
 
-To visualize the intersection between multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package which is in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset) better maintained. It offers better support for pandas and is also well documented. Especially the input format for the UpSet plot is well described.
+To visualize the intersection between multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package which is better maintained in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset). It offers better support for pandas and is also well documented. Especially the input format for the UpSet plot is well described.
 
 The input format can be generated with the `from_memberships` method. It accepts two parameters: a nested list with elements corresponding to a set and secondly a list containing additional data which has the same length as the nested list.
 
@@ -793,8 +793,8 @@ knitr::include_graphics('./media/figures/7.png', dpi=NA)
 
 ## Discussion and Conclusion
 
-In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,569,137 scholarly articles in Unpaywall in the period from 2008 to 2018 that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thus we can interpret upcoming trends more precisely. 
+In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,569,137 scholarly articles in Unpaywall in the period from 2008 to 2018 that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly we can interpret upcoming trends more precisely. 
 
-Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the latest database snapshot. Altogether, this suggests that more articles left closed access and Unpaywall was able to link more DOI’s to articles found in the new introduced evidence types.
+Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the latest database snapshot. Altogether, this suggests that more had articles left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types.
 
-Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on tranlated R source code, we learned plenty of approaches to face upcoming data analysis projects. 
+Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we´ve learned plenty of approaches to face upcoming data analysis projects. 
