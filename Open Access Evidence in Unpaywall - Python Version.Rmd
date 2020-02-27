@@ -109,14 +109,15 @@ plt.rcParams['figure.figsize'] = [10, 4]
 plt.grid(False, which='both', axis='x')
 plt.box(False)
 plt.stackplot(x, y1, y2, colors=['#56B4E9', '#b3b3b3a0'], alpha=0.8)
-plt.title('Open Access to Journal Articles', fontdict={'fontsize': 15, 'fontweight': 600}, \
-          pad=20)
+plt.title('Open Access to Journal Articles', 
+          fontdict={'fontsize': 13, 'fontweight': 600},
+          pad=10)
 plt.xlabel('Year published', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
 plt.ylabel('Journal Articles', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
 is_oa_patch = mpatches.Patch(color='#56B4E9', label='TRUE')
 is_not_oa_patch = mpatches.Patch(color='#b3b3b3a0', label='FALSE')
-plt.legend(handles=[is_oa_patch, is_not_oa_patch], title='Is OA?', \
-           fontsize='medium', bbox_to_anchor=(1.2, 1.05), labelspacing=1.2)
+plt.legend(handles=[is_oa_patch, is_not_oa_patch], title='Is OA?',
+           fontsize='medium', bbox_to_anchor=(1.2, 1.02), labelspacing=1.2)
 
 plt.tight_layout()
 
@@ -182,7 +183,10 @@ plt.rcParams['figure.figsize'] = [11, 3.5]
 
 fig,(axes) = plt.subplots(nrows=1, ncols=3)
 
-fig.suptitle('Open Access to Journal Articles by Unpaywall host', fontsize=16, y=1.10)
+fig.suptitle('Open Access to Journal Articles by Unpaywall host', 
+             fontsize=14, 
+             fontweight=600, 
+             y=1.10)
 
 for i, host in enumerate(host_type_df.host.unique(), 1):
     
@@ -202,15 +206,15 @@ for i, host in enumerate(host_type_df.host.unique(), 1):
         
 # common xlabel   
 fig.text(0.45, -0.03, 'Year', ha='center', 
-         fontdict={'fontsize': 13, 'fontweight': 500})
+         fontdict={'fontsize': 12, 'fontweight': 500})
 
 # common ylabel
 fig.text(-0.02, 0.5, 'OA Articles (Total)', va='center', rotation='vertical', 
-         fontdict={'fontsize': 13, 'fontweight': 500})
+         fontdict={'fontsize': 12, 'fontweight': 500})
 
 by_host_patch = mpatches.Patch(color='#56B4E9', label='by Host')
 all_oa_patch = mpatches.Patch(color='#b3b3b3a0', label='All OA Articles')
-plt.legend(handles=[all_oa_patch, by_host_patch], fontsize='medium', \
+plt.legend(handles=[all_oa_patch, by_host_patch], fontsize='medium',
            bbox_to_anchor=(1.05, 0.9), labelspacing=1.2)
 
 fig.tight_layout()
@@ -397,11 +401,12 @@ ax1 = plt.barh(y1, x_total, color='#b3b3b3a0')
 ax2 = plt.barh(y1, x_stacked, color='#56B4E9')
 
 plt.title('Number of Open Access Articles per Unpaywall Evidence Type', 
-          fontdict={'fontsize': 15, 'fontweight': 600}, pad=20)
+          fontdict={'fontsize': 13, 'fontweight': 600}, pad=20, x=0.3)
 plt.xlabel('Number of Open Access Articles', labelpad=10, 
-           fontdict={'fontsize': 13, 'fontweight': 500})
+           fontdict={'fontsize': 12, 'fontweight': 500})
 
-plt.ylabel('Evidence Type', labelpad=10, fontdict={'fontsize': 13, 'fontweight': 500})
+plt.ylabel('Evidence Type', labelpad=10, 
+           fontdict={'fontsize': 12, 'fontweight': 500})
 
 is_best_patch = mpatches.Patch(color='#56B4E9', label='TRUE')
 is_not_best_patch = mpatches.Patch(color='#b3b3b3a0', label='FALSE')
@@ -433,7 +438,11 @@ fig, (axes) = plt.subplots(nrows=5,
 # get a one-dimensional array
 axes = axes.reshape(-1)
 
-fig.suptitle('Unpaywall Open Access Evidence Categories per Year', fontsize=16, y=1.05)
+fig.suptitle('Unpaywall Open Access Evidence Categories per Year', 
+             fontsize=15, 
+             fontweight=600, 
+             x=0.53,
+             y=1.05)
 
 for i, ax in enumerate(axes, 1):
     
@@ -572,7 +581,11 @@ plt.rcParams['figure.figsize'] = [11, 3.5]
 
 fig,(axes) = plt.subplots(nrows=1, ncols=3)
 
-fig.suptitle('Overlap between Open Access Host Types in Unpaywall', fontsize=16, y=1.10)
+fig.suptitle('Overlap between Open Access Host Types in Unpaywall', 
+             fontsize=14, 
+             fontweight=600,
+             x=0.48,
+             y=1.10)
     
 for i, host in enumerate(host_type_intersect_df.host.unique(), 1):
     ax = plt.subplot(1,3,i)
@@ -594,11 +607,11 @@ for i, host in enumerate(host_type_intersect_df.host.unique(), 1):
         
 # common xlabel   
 fig.text(0.45, -0.03, 'Year', ha='center', 
-         fontdict={'fontsize': 13, 'fontweight': 500})
+         fontdict={'fontsize': 12, 'fontweight': 500})
 
 # common ylabel
 fig.text(-0.02, 0.5, 'OA Share', va='center', rotation='vertical', 
-         fontdict={'fontsize': 13, 'fontweight': 500})
+         fontdict={'fontsize': 12, 'fontweight': 500})
     
 by_host_patch = mpatches.Patch(color='#56B4E9', label='by Host')
 all_oa_patch = mpatches.Patch(color='#b3b3b3a0', label='All OA Articles')
@@ -712,11 +725,12 @@ ax2 = plt.barh(y1, x_stacked, color='#56B4E9')
 ax.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 
 plt.title('Proportion of Articles per Evidence Type', 
-          fontdict={'fontsize': 15, 'fontweight': 600}, pad=20)
+          fontdict={'fontsize': 13, 'fontweight': 600}, x=0.25, pad=15)
 plt.xlabel('Proportion of Articles', labelpad=10, 
-           fontdict={'fontsize': 13, 'fontweight': 500})
+           fontdict={'fontsize': 12, 'fontweight': 500})
 
-plt.ylabel('Evidence Type', labelpad=10, fontdict={'fontsize': 13, 'fontweight': 500})
+plt.ylabel('Evidence Type', labelpad=10, 
+           fontdict={'fontsize': 12, 'fontweight': 500})
 
 is_unique_patch = mpatches.Patch(color='#56B4E9', label='TRUE')
 is_not_unique_patch = mpatches.Patch(color='#b3b3b3a0', label='FALSE')
@@ -795,6 +809,6 @@ knitr::include_graphics('./media/figures/7.png', dpi=NA)
 
 In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,569,137 scholarly articles in Unpaywall in the period from 2008 to 2018 that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly we can interpret upcoming trends more precisely. 
 
-Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the latest database snapshot. Altogether, this suggests that more had articles left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types.
+Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the latest database snapshot. Altogether, this suggests that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types.
 
 Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we´ve learned plenty of approaches to face upcoming data analysis projects. 
