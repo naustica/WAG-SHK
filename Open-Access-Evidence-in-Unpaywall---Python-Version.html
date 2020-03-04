@@ -1958,8 +1958,8 @@ distill-header .nav a {
 
 </div>
 <p>The <a href="https://unpaywall.org/">Unpaywall</a> database is a collection of millions of scholarly fulltext articles that were harvested from a variety of different repositories and services like <a href="https://www.ncbi.nlm.nih.gov/pmc/">PubMed Central</a> and <a href="https://doaj.org/">DOAJ</a>. Although Unpaywall offers a REST API to query the Unpaywall database, it is more convenient and efficient to use the provided <a href="https://unpaywall.org/products/snapshot">database snapshots</a>, which are usually released twice a year.</p>
-<p>In this blog post, we discuss the results from the blog article “<a href="https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/">Open Access Evidence in Unpaywall</a>” by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article was published on May 7th, 2019, Unpaywall has recently released a new data dump with up-to-date information about scholarly journal articles. Therefore it might be interesting to see how the change in data impacts the results of our analysis compared to the previous blog article. For this post we are using the Unpaywall data dump from February 2020.</p>
-<p>In order to query the Unpaywall dataset, which is stored in Google BigQuery, we use the <a href="https://googleapis.dev/python/bigquery/latest/index.html">google-cloud-bigquery</a> package. By default, this package is not shipped with <a href="https://pandas.pydata.org/">pandas</a>. However, we recommend to use this package along with pandas to have a better experience. The major reason for this being, that the queried data can easily be exported into a pandas DataFrame.</p>
+<p>In this blog post, we discuss the results from the blog article “<a href="https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/">Open Access Evidence in Unpaywall</a>” by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article´s publication on May 7th, 2019, Unpaywall has recently released a new data dump with up-to-date information about scholarly journal articles. Therefore it might be interesting to see how the change in data impacts the results of our analysis compared to the previous blog article. For this post we are using the Unpaywall data dump from February 2020.</p>
+<p>In order to query the Unpaywall dataset, which is stored in Google BigQuery, we use the <a href="https://googleapis.dev/python/bigquery/latest/index.html">google-cloud-bigquery</a> package. By default, this package does not ship with <a href="https://pandas.pydata.org/">pandas</a>. However, we recommend to use this package along with pandas for a better experience. The major reason for this being, that the queried data can easily be exported into a pandas DataFrame.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 from google.cloud import bigquery
@@ -2076,7 +2076,7 @@ paratext_df</code></pre>
 <p>Yet, the proportion of paratexts in our dataset amounts to approximately 1%. In total, 284204 paratexts are linked to a specific DOI. We can also see that 31,900,224 distinct DOI´s are included in the current database snapshot.</p>
 <h2 id="open-access-availability-is_oa">Open Access availability (is_oa)</h2>
 <p>To contrast the previous results from the blog article with the recent results, we begin with a comparison of the total number of articles between the two datasets from February 2019 and February 2020. More importantly, we will investigate the open access share between these two.</p>
-<p>Before we can compute the open access proportion in our dataset, we must query our database and count the number of distinct DOI´s by year and open access status. Since we have two tables, we need to concatenate our dataframes in the next step. We also have to convert the column which contains the year from string to datetime. This allows us to handle date informations much better when visualizing data. After we have calculated the proportion of open access by year, we will now sort the values by time.</p>
+<p>Before we can compute the open access proportion in our dataset, we must query our database and count the number of distinct DOI´s by year and open access status. Since we have two tables, we need to concatenate our dataframes in the next step. We also have to convert the column which contains the year from string to datetime. This allows us to handle date information much better when visualizing data. After we have calculated the proportion of open access by year, we will now sort the values by time.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 oa_08_12 = client.query(f&quot;&quot;&quot;
@@ -2107,8 +2107,8 @@ df.head()
 #&gt; 3 2009-01-01   True   697145  0.310508
 #&gt; 4 2010-01-01  False  1698480  0.682656</code></pre>
 </div>
-<p>For visualization, we are using <a href="https://matplotlib.org/">matplotlib</a>. Matplotlib is a commonly used plotting library for Python that is influenced by <a href="https://www.mathworks.com/products/matlab.html">Matlab</a> and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, we feel more comfortable with using essential matplotlib methods. Especially, when customizing the figure.</p>
-<p>In our first plot we visualize the open access share to journal articles over time. Whereas our plot is not interactive like in the stated blog article, we could make use of the same plotting library named Plotly which can be found <a href="https://plot.ly/">here</a>. Plotly is available for R, Javascript and Python.</p>
+<p>For visualization, we are using <a href="https://matplotlib.org/">matplotlib</a>. Matplotlib is a commonly used plotting library for Python that is influenced by <a href="https://www.mathworks.com/products/matlab.html">Matlab</a> and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, it is more comfortable to do so with essential matplotlib methods. Especially, when customizing the figure.</p>
+<p>In our first plot we visualize the open access share to journal articles over time. Whereas our plot is not interactive like in the stated blog article, if needed, this could be achieved by using the same plotting library named Plotly which can be found <a href="https://plot.ly/">here</a>. Plotly is available for R, Javascript and Python.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 x = df.year.unique()
@@ -2167,7 +2167,7 @@ HOST_TYPE_13_18_QUERY = f&quot;&quot;&quot;
                         GROUP BY year, host_type, journal_is_in_doaj
                         &quot;&quot;&quot;</code></pre>
 </div>
-<p>Like in the aforementioned blog article, we create a <code>host</code> column with the pandas provided <code>loc</code> method to highlight freely available full-texts provided by DOAJ in addition to the regular host types. Because DOAJ ensures high quality standards and peer reviews for their indexed journals, it might be interesting to see whether an increase of publishing in potentially less strict open access journals can be observed or not.</p>
+<p>Like in the original blog article, we create a <code>host</code> column with the pandas provided <code>loc</code> method to highlight freely available full-texts provided by DOAJ in addition to the regular host types. Because DOAJ ensures high quality standards and peer reviews for their indexed journals, it might be interesting to see whether an increase of publishing in potentially less strict open access journals can be observed or not.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 host_type_08_12_query_df = client.query(HOST_TYPE_08_12_QUERY).to_dataframe()
@@ -2522,7 +2522,7 @@ evidence_grouped_df = evidence_grouped_df.groupby(['evidence', 'is_best', 'year'
                                 .reset_index(drop=True)</code></pre>
 </div>
 <p>To illustrate the best open access locations according to Unpaywall, we will visualize the quantity of articles that were obtained from data sources with the <code>is_best</code> attribute given by Unpaywall in contrast to the total number of articles found in each evidence type.</p>
-<p>This time we are using the <a href="https://seaborn.pydata.org/index.html">seaborn</a> package for generating bar plots. Seaborn is a visualization library which is build on top of matplotlib. It is well designed to fit with pandas DataFrames and it also enables smoother plots. Also, we can continue to use matplotlib methods.</p>
+<p>This time we are using the <a href="https://seaborn.pydata.org/index.html">seaborn</a> package for generating bar plots. Seaborn is a visualization library which is build on top of matplotlib. It is well designed to work with pandas DataFrames and it also enables smoother plots. Also, we can continue to use matplotlib methods.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 evidence_grouped_plot_df = evidence_grouped_df[evidence_grouped_df.is_best == True] \
@@ -2816,7 +2816,7 @@ Figure 5: Open access to journal articles by open access hosting location.
 </div>
 <p>The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 77% of all open access full-texts are available through publisher websites which is a total of 10,448,559 articles. Relatively speaking, this is a decrease by almost 5% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 37%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 40%.</p>
 <h3 id="overlaps-between-evidence-types">Overlaps between Evidence types</h3>
-<p>So far, we investigated the overlap of host types in Unpaywall in this section. However various articles are associated with multiple evidence types in Unpaywall as mentioned at the beginning of this section, so that we examine the intersection between evidence types in the next step.</p>
+<p>So far, we investigated the overlap of host types in Unpaywall in this section. However various articles are associated with multiple evidence types in Unpaywall as mentioned at the beginning of this section, so we examine the intersection between evidence types in the next step.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 EVIDENCE_SINGLE_CAT_08_12_QUERY = f&quot;&quot;&quot;
