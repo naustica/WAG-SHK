@@ -25,8 +25,8 @@
   
   
   <!--  https://schema.org/Article -->
-  <meta property="article:published" itemprop="datePublished" content="2020-03-03" />
-  <meta property="article:created" itemprop="dateCreated" content="2020-03-03" />
+  <meta property="article:published" itemprop="datePublished" content="2020-03-04" />
+  <meta property="article:created" itemprop="dateCreated" content="2020-03-04" />
   <meta name="article:author" content="Nick Haupka" />
   
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
@@ -44,7 +44,7 @@
   <!--radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Open Access Evidence in Unpaywall using Python"]},{"type":"character","attributes":{},"value":["Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Nick Haupka"]}]}]},{"type":"character","attributes":{},"value":["2020-03-03"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Open Access Evidence in Unpaywall using Python"]},{"type":"character","attributes":{},"value":["Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Nick Haupka"]}]}]},{"type":"character","attributes":{},"value":["2020-03-04"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -1932,7 +1932,7 @@ distill-header .nav a {
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Open Access Evidence in Unpaywall using Python","description":"Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.","authors":[{"author":"Nick Haupka","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#"}],"publishedDate":"2020-03-03T00:00:00.000+01:00","citationText":"Haupka, 2020"}
+{"title":"Open Access Evidence in Unpaywall using Python","description":"Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.","authors":[{"author":"Nick Haupka","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#"}],"publishedDate":"2020-03-04T00:00:00.000+01:00","citationText":"Haupka, 2020"}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -1950,7 +1950,7 @@ distill-header .nav a {
   
   Nick Haupka
   
-<br />2020-03-03
+<br />2020-03-04
 </div>
 
 <div class="d-article">
@@ -2578,11 +2578,11 @@ Figure 3: Number of articles per evidence type.
 </p>
 </div>
 </div>
-<p>The figure provides two types of evidence that were not specifically mentioned in the previous work: <code>oa repository (semantic scholar lookup)</code> and <code>oa journal (via observed rate)</code>. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020. Furthermore we can observe an increase of articles in repositories. However, Unpaywall still prioritises publisher hosted content over repository depositions as can be seen.</p>
+<p>The figure provides two types of evidence that were not specifically mentioned in the previous work: <code>oa repository (semantic scholar lookup)</code> and <code>oa journal (via observed rate)</code>. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020. Furthermore we can observe an increase of articles in repositories. Indeed, the evidence type with most associated articles is a repository. However, Unpaywall still prioritises publisher hosted content over repository depositions as can be seen.</p>
 <p>To distinguish the classification as best open access location of data sources by Unpaywall over time, we again make use of matplotlib. Although the FacetGrid function provided by seaborn would be very useful for this task it unfortunately doesn´t support stacked plots as mentioned in this <a href="https://github.com/mwaskom/seaborn/issues/1485">issue</a> on GitHub.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
-y1 = evidence_grouped_df.sort_values(by=['year'], ascending=True) \
+x = evidence_grouped_df.sort_values(by=['year'], ascending=True) \
                         .reset_index(drop=False) \
                         ['year'].dt.year.unique()
 
@@ -2612,21 +2612,21 @@ for i, ax in enumerate(axes, 1):
     
     evidence = evidence_grouped_df.evidence.unique()[i-1]
 
-    x_total = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
+    y_total = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
                             .groupby(['year']) \
                             .number_of_articles.sum() \
                             .to_frame().reset_index() \
                             .number_of_articles
 
-    x_stacked = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
+    y_stacked = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
                             .loc[evidence_grouped_df.is_best == True] \
                             .groupby(['year']) \
                             .number_of_articles.sum() \
                             .to_frame().reset_index() \
                             .number_of_articles
 
-    ax = plt.bar(y1, x_total, color='#b3b3b3a0')
-    ax = plt.bar(y1, x_stacked, color='#56B4E9')
+    ax = plt.bar(x, y_total, color='#b3b3b3a0')
+    ax = plt.bar(x, y_stacked, color='#56B4E9')
     plt.title(evidence, fontdict={'fontsize': 12, 'fontweight': 500}, pad=0.2)
     
     plt.grid(False, which='both', axis='x')
@@ -3016,9 +3016,9 @@ Figure 7: Most frequent combinations of evidence types.
 </div>
 </div>
 <h2 id="discussion-and-conclusion">Discussion and Conclusion</h2>
-<p>In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018 that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly we can interpret upcoming trends more precisely.</p>
-<p>Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the latest database snapshot. Altogether, this suggests that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types.</p>
-<p>Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we´ve learned plenty of approaches to face upcoming data analysis projects.</p>
+<p>In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly we can interpret upcoming trends more precisely.</p>
+<p>Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. Though the results should be viewed with caution, since we have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types. We can also confirm the rise of repositories as hosting provider of online content. Despite that, publishing in DOAJ-listed journals is also slowly becoming more popular.</p>
+<p>Additionally this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we would be pleased to facilitate and encourage R users to work with Python, as well as Python users to work with the Unpaywall database.</p>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>

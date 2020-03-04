@@ -496,12 +496,12 @@ plt.show()
 knitr::include_graphics('./media/figures/3.png', dpi=NA)
 ```
 
-The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020. Furthermore we can observe an increase of articles in repositories. However, Unpaywall still prioritises publisher hosted content over repository depositions as can be seen. 
+The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020. Furthermore we can observe an increase of articles in repositories. Indeed, the evidence type with most associated articles is a repository. However, Unpaywall still prioritises publisher hosted content over repository depositions as can be seen. 
 
 To distinguish the classification as best open access location of data sources by Unpaywall over time, we again make use of matplotlib. Although the FacetGrid function provided by seaborn would be very useful for this task it unfortunately doesn´t support stacked plots as mentioned in this [issue](https://github.com/mwaskom/seaborn/issues/1485) on GitHub.
 
 ```{python eval=FALSE}
-y1 = evidence_grouped_df.sort_values(by=['year'], ascending=True) \
+x = evidence_grouped_df.sort_values(by=['year'], ascending=True) \
                         .reset_index(drop=False) \
                         ['year'].dt.year.unique()
 
@@ -531,21 +531,21 @@ for i, ax in enumerate(axes, 1):
     
     evidence = evidence_grouped_df.evidence.unique()[i-1]
 
-    x_total = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
+    y_total = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
                             .groupby(['year']) \
                             .number_of_articles.sum() \
                             .to_frame().reset_index() \
                             .number_of_articles
 
-    x_stacked = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
+    y_stacked = evidence_grouped_df[evidence_grouped_df.evidence == evidence] \
                             .loc[evidence_grouped_df.is_best == True] \
                             .groupby(['year']) \
                             .number_of_articles.sum() \
                             .to_frame().reset_index() \
                             .number_of_articles
 
-    ax = plt.bar(y1, x_total, color='#b3b3b3a0')
-    ax = plt.bar(y1, x_stacked, color='#56B4E9')
+    ax = plt.bar(x, y_total, color='#b3b3b3a0')
+    ax = plt.bar(x, y_stacked, color='#56B4E9')
     plt.title(evidence, fontdict={'fontsize': 12, 'fontweight': 500}, pad=0.2)
     
     plt.grid(False, which='both', axis='x')
@@ -907,8 +907,8 @@ knitr::include_graphics('./media/figures/7.png', dpi=NA)
 
 ## Discussion and Conclusion
 
-In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018 that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly we can interpret upcoming trends more precisely. 
+In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly we can interpret upcoming trends more precisely.
 
-Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the latest database snapshot. Altogether, this suggests that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types.
+Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. Though the results should be viewed with caution, since we have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types. We can also confirm the rise of repositories as hosting provider of online content. Despite that, publishing in DOAJ-listed journals is also slowly becoming more popular.
 
-Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we´ve learned plenty of approaches to face upcoming data analysis projects. 
+Additionally this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we would be pleased to facilitate and encourage R users to work with Python, as well as Python users to work with the Unpaywall database.
