@@ -374,24 +374,23 @@ Table: Table 2: Number of articles per evidence type.
 
 |    | Evidence Types                                           |   Number of Articles |   Proportion of all Articles in % |   Cumulative Proportion in % |
 |---:|:---------------------------------------------------------|---------------------:|----------------------------------:|-----------------------------:|
-|  0 | oa repository (via OAI-PMH doi match)                    |              4831411 |                             16.72 |                        16.72 |
-|  1 | open (via free pdf)                                      |              4753669 |                             16.46 |                        33.18 |
-|  2 | oa repository (semantic scholar lookup)                  |              4317898 |                             14.95 |                        48.13 |
-|  3 | open (via page says license)                             |              4028817 |                             13.95 |                        62.07 |
-|  4 | oa journal (via doaj)                                    |              3601991 |                             12.47 |                        74.54 |
-|  5 | oa repository (via pmcid lookup)                         |              3312532 |                             11.47 |                        86.01 |
-|  6 | oa repository (via OAI-PMH title and first author match) |              1789888 |                              6.2  |                        92.2  |
-|  7 | oa journal (via observed oa rate)                        |              1096970 |                              3.8  |                        96    |
-|  8 | open (via crossref license)                              |               582623 |                              2.02 |                        98.02 |
-|  9 | open (via free article)                                  |               227512 |                              0.79 |                        98.81 |
-| 10 | open (via page says Open Access)                         |                94532 |                              0.33 |                        99.13 |
-| 11 | oa journal (via publisher name)                          |                74292 |                              0.26 |                        99.39 |
-| 12 | open (via crossref license, author manuscript)           |                71388 |                              0.25 |                        99.64 |
-| 13 | oa repository (via OAI-PMH title match)                  |                60374 |                              0.21 |                        99.85 |
-| 14 | oa repository (via OAI-PMH title and last author match)  |                44083 |                              0.15 |                       100    |
-| 15 | oa journal (via issn in doaj)                            |                  392 |                              0    |                       100    |
-| 16 | manual                                                   |                   29 |                              0    |                       100    |
-| 17 | hybrid (via page says license)                           |                    2 |                              0    |                       100    |
+|  0 | oa repository (via OAI-PMH doi match)                    |              4829188 |                             16.76 |                        16.76 |
+|  1 | open (via free pdf)                                      |              4733697 |                             16.43 |                        33.19 |
+|  2 | oa repository (semantic scholar lookup)                  |              4317376 |                             14.98 |                        48.18 |
+|  3 | open (via page says license)                             |              4027715 |                             13.98 |                        62.15 |
+|  4 | oa journal (via doaj)                                    |              3596329 |                             12.48 |                        74.64 |
+|  5 | oa repository (via pmcid lookup)                         |              3308388 |                             11.48 |                        86.12 |
+|  6 | oa repository (via OAI-PMH title and first author match) |              1789527 |                              6.21 |                        92.33 |
+|  7 | oa journal (via observed oa rate)                        |              1095887 |                              3.80 |                        96.13 |
+|  8 | open (via crossref license)                              |               577236 |                              2.00 |                        98.14 |
+|  9 | open (via free article)                                  |               193003 |                              0.67 |                        98.81 |
+| 10 | open (via page says Open Access)                         |                94117 |                              0.33 |                        99.13 |
+| 11 | oa journal (via publisher name)                          |                74289 |                              0.26 |                        99.39 |
+| 12 | open (via crossref license, author manuscript)           |                71386 |                              0.25 |                        99.64 |
+| 13 | oa repository (via OAI-PMH title match)                  |                59580 |                              0.21 |                        99.85 |
+| 14 | oa repository (via OAI-PMH title and last author match)  |                44073 |                              0.15 |                       100.00 |
+| 15 | manual                                                   |                   29 |                              0.00 |                       100.00 |
+| 16 | hybrid (via page says license)                           |                    1 |                              0.00 |                       100.00 |
 :::
 
 Interestingly, the evidence type with the third highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further we can identify the same phenomenon as in the previous work, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following we will collate these evidence types in the category `other`.
