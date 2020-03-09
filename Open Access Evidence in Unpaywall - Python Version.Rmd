@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 The [Unpaywall](https://unpaywall.org/) database is a collection of millions of scholarly fulltext articles that were harvested from a variety of different repositories and services like [PubMed Central](https://www.ncbi.nlm.nih.gov/pmc/) and [DOAJ](https://doaj.org/). Although Unpaywall offers a REST API to query the Unpaywall database, it is more convenient and efficient to use the provided [database snapshots](https://unpaywall.org/products/snapshot), which are usually released twice a year.
 
-In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article´s publication on May 7th, 2019, Unpaywall has recently released a new data dump with up-to-date information about scholarly journal articles. Therefore it might be interesting to see how the change in data impacts the results of our analysis compared to the previous blog article. For this post we are using the Unpaywall data dump from February 2020.
+In this blog post, we discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article´s publication on May 7th, 2019, Unpaywall has released new data dumps with up-to-date information about scholarly journal articles. Therefore, it might be interesting to see how the change in data impacts the results of our analysis compared to the previous blog article. For this post we are using the most recent Unpaywall data dump from February 2020.
 
 In order to query the Unpaywall dataset, which is stored in Google BigQuery, we use the [google-cloud-bigquery](https://googleapis.dev/python/bigquery/latest/index.html) package. By default, this package does not ship with [pandas](https://pandas.pydata.org/). However, we recommend to use this package along with pandas for a better experience. The major reason for this being, that the queried data can easily be exported into a pandas DataFrame. 
 
@@ -36,11 +36,15 @@ import upsetplot
 
 The setup for the Google BigQuery Python client is very simple. Firstly, we import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If we didn´t set our credentials for the Google Cloud service yet, Google asks us to verify our client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that our project-database has restricted access.
 
+<aside>
+  Google BigQuery is a paid service (with a large free contingent). If you would like to work with our access-restricted instance, please contact us.
+</aside>
+
 ```{python echo=TRUE, results='hide'}
 client = bigquery.Client(project='api-project-764811344545')
 ```
 
-According to the aforementioned blog article, the dataset being used has two tables, containing records between 2008 and 2018. For reusability, we define two variables which are holding the table´s names to call them in SQL queries. We are also using the improved string formatting syntax which is a new feature since Python 3.6.
+Like in the aforementioned blog article, also the recent dataset is stored in two tables, containing records between 2008 and February 2020. For the analysis we will restrict the dataset being used here to publication years 2008 until 2018, the time period covered in the previous post. For reusability, we define two variables which are holding the tables' names to call them in SQL queries. We are also using the improved string formatting syntax which is a new feature since Python 3.6.
 
 ```{python}
 # database snapshots
@@ -54,15 +58,14 @@ We can query the project-database by using the `query` method on our created cli
 client.query(f"""
             SELECT * 
             FROM {upw_13_18} 
-            WHERE year=2018
-            AND genre="journal-article" 
+            WHERE year=2018 AND genre="journal-article" 
             LIMIT 10
             """).to_dataframe()
 ```
 
 ## Paratexts in Unpaywall (is_paratext)
 
-As can be seen from the outcome of the previous query, Unpaywall has recently introduced a new attribute `is_paratext` in the updated February 2020 database snapshot. It contains a boolean value which indicates whether a DOI is linked to an paratext or not. Because additional content to an journal article can also get classified as a `journal article` by the publisher, such as table of contents, it can mislead the analysis of scholarly articles in Unpaywall. Therefore we will ignore DOI´s that are related to paratexts in the following. For more information about the `is_paratext` field visit this [page](https://support.unpaywall.org/support/solutions/articles/44001894783).
+As can be seen from the outcome of the previous query, Unpaywall has recently introduced a new attribute `is_paratext` in the updated February 2020 database snapshot. It contains a boolean value which indicates whether a DOI is linked to a paratext or not. Because additional content to a journal article can also get classified as a `journal article` by the publisher, such as table of contents, it can mislead the analysis of scholarly articles in Unpaywall. Therefore we will ignore DOI´s that are related to paratexts in the following. For more information about the `is_paratext` field visit this [page](https://support.unpaywall.org/support/solutions/articles/44001894783).
 
 But firstly, we will analyze the share of paratexts in the current data dump. For that we request the total number of DOI´s and the number of DOI´s that are related to paratexts in both tables. 
 
@@ -119,7 +122,7 @@ Table: Table 1: Number of paratexts in Unpaywall.
 
 :::
 
-Yet, the proportion of paratexts in our dataset amounts to approximately 1%. In total, 284204 paratexts are linked to a specific DOI. We can also see that 31,900,224 distinct DOI´s are included in the current database snapshot.
+Yet, the proportion of paratexts in our dataset amounts to approximately 1%. In total, 284204 paratexts are linked to a specific DOI. We can also see that 31,900,224 distinct DOIs of `genre` `journal-article` are included in our excerpt of the current database snapshot, containing publications from 2008 onwards.
 
 ## Open Access availability (is_oa)
 
@@ -147,11 +150,11 @@ oa_13_18 = client.query(f"""
 df = pd.concat([oa_08_12, oa_13_18])
 df.year = pd.to_datetime(df.year.apply(lambda x: str(x) + "-01-01"))
 df['prop'] = df.groupby(['year'])['n'].transform(lambda x: x / x.sum())
-df = df.sort_values(by=['year']).reset_index(drop=True)
+df = df.sort_values(by=['year', 'is_oa'], ascending=[True, False]).reset_index(drop=True)
 df.head()
 ```
 
-For visualization, we are using [matplotlib](https://matplotlib.org/). Matplotlib is a commonly used plotting library for Python that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. Even though pandas allows us to directly call a plot method on a DataFrame, it is more comfortable to do so with essential matplotlib methods. Especially, when customizing the figure.
+For visualization, we are using [matplotlib](https://matplotlib.org/). Matplotlib is a commonly used plotting library for Python that is influenced by [Matlab](https://www.mathworks.com/products/matlab.html) and enables a wide range of different plot figures. By using matplotlib we can also take advantage of pandas plotting methods which uses the library as the standard backend.
 
 In our first plot we visualize the open access share to journal articles over time. Whereas our plot is not interactive like in the stated blog article, if needed, this could be achieved by using the same plotting library named Plotly which can be found [here](https://plot.ly/). Plotly is available for R, Javascript and Python.
 
@@ -163,27 +166,30 @@ plt.rcParams['figure.dpi'] = 300
 ```
 
 ```{python eval=FALSE}
-x = df.year.unique()
-y1 = df[df.is_oa == True].n
-y2 = df[df.is_oa == False].n
-
 plt.style.use('seaborn-whitegrid')
-plt.rcParams['figure.figsize'] = [10, 4]
-plt.grid(False, which='both', axis='x')
+
+ax = df.groupby(['year', 'is_oa'], sort=False) \
+            ['n'].sum().unstack() \
+            .plot.area(figsize=(10,4),
+                       alpha=0.8,
+                       linewidth=0,
+                       color=['#56B4E9', '#b3b3b3a0'])
+
+ax.grid(False, which='both', axis='x')
+ax.set_xlim(37.5, 48.5)
+handles, labels = ax.get_legend_handles_labels()
 plt.box(False)
 
-plt.stackplot(x, y1, y2, 
-              labels=['TRUE', 'FALSE'],
-              colors=['#56B4E9', '#b3b3b3a0'], 
-              alpha=0.8)
-
 plt.title('Open Access to Journal Articles', 
-          fontdict={'fontsize': 13, 'fontweight': 600},
-          pad=10)
+          fontdict={'fontsize': 13, 'fontweight': 600}, pad=10)
 plt.xlabel('Year published', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
 plt.ylabel('Journal Articles', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
 
-plt.legend(title='Is OA?', fontsize='medium', bbox_to_anchor=(1.15, 1.02), labelspacing=1.2)
+plt.legend(handles, ['TRUE', 'FALSE'], 
+           title='Is OA?', 
+           fontsize='medium', 
+           bbox_to_anchor=(1.15, 1.02), 
+           labelspacing=1.2)
 
 plt.tight_layout()
 
@@ -194,7 +200,7 @@ plt.show()
 knitr::include_graphics('./media/figures/1.png', dpi=NA)
 ```
 
-As expected, the total number of journal articles has increased, compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from February 2020 has increased by 1.4% (regardless of paratexts that were not specified in previous database snapshots) in comparison to the February 2019 data dump used in the original blog post. In addition, the share of open access articles has increased by 6%. Overall, 13,527,352 freely available articles were published between 2008 and 2018.
+As expected, the total number of journal articles has increased, compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from February 2020 has increased by 1.4% (regardless of paratexts that were not specified in previous database snapshots) in comparison to the February 2019 data dump used in the original blog post. In addition, the share of open access articles has increased by 6%. Overall, 13,527,352 articles that were published between 2008 and 2018 are freely available by February 2020.
 
 ## Unpaywall Open Access Hosting Types (host_type)
 
@@ -330,7 +336,7 @@ evidence_df.year = pd.to_datetime(evidence_df.year.apply(lambda x: str(x) + "-01
 evidence_df.head()
 ```
 
-For each evidence type we calculate the total number of articles and the related proportion, as well as the cumulative proportion regarding to the number of all articles. Then we display the results in form of a table. To specify the precision of the resulting floating point numbers we again make use of the Python built-in string formatting function. Here we specify by 2 digits of accuracy.
+For each evidence type we calculate the total number of articles and the related proportion, as well as the cumulative proportion with respect to the number of all articles. Then we display the results in form of a table. To specify the precision of the resulting floating point numbers we again make use of the Python built-in string formatting function. Here we specify by 2 digits of accuracy.
 
 ```{python}
 articles_per_type_df = evidence_df.groupby(['evidence']).number_of_articles \
@@ -393,7 +399,7 @@ Table: Table 2: Number of articles per evidence type.
 | 16 | hybrid (via page says license)                           |                    1 |                              0.00 |                       100.00 |
 :::
 
-Interestingly, the evidence type with the third highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further we can identify the same phenomenon as in the previous work, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following we will collate these evidence types in the category `other`.
+Interestingly, the evidence type with the third highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, we can identify the same phenomenon as in the previous work, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, we will collate these evidence types in the category `other`.
 
 ```{python}
 sum_other = articles_per_type_df \
@@ -495,7 +501,7 @@ plt.show()
 knitr::include_graphics('./media/figures/3.png', dpi=NA)
 ```
 
-The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020. Furthermore we can observe an increase of articles in repositories. Indeed, the evidence type with most associated articles is a repository. However, Unpaywall still prioritises publisher hosted content over repository depositions as can be seen. 
+The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020. Furthermore we can observe an increase of articles in repositories. Indeed, the evidence type with most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen. 
 
 To distinguish the classification as best open access location of data sources by Unpaywall over time, we again make use of matplotlib. Although the FacetGrid function provided by seaborn would be very useful for this task it unfortunately doesn´t support stacked plots as mentioned in this [issue](https://github.com/mwaskom/seaborn/issues/1485) on GitHub.
 
@@ -575,7 +581,7 @@ knitr::include_graphics('./media/figures/4.png', dpi=NA)
 
 ## Overlap of Open Access Provision and Evidence Types
 
-Owing to possible multiple associations between an article and evidence types in Unpaywall, we investigate the intersection between host types in the next step. Again, we compare the results with the previous results.
+Owing to possible multiple associations between an article and evidence types in Unpaywall (there might be multiple free access locations for the same article), we investigate the intersection between host types in the next step. Again, we compare our findings with the previous results.
 
 ### Overlap between Host Types
 
@@ -726,7 +732,7 @@ The figure shows that, in terms of percentage, fewer articles were found on publ
 
 ### Overlaps between Evidence types
 
-So far, we investigated the overlap of host types in Unpaywall in this section. However various articles are associated with multiple evidence types in Unpaywall as mentioned at the beginning of this section, so we examine the intersection between evidence types in the next step.
+So far, we investigated the overlap of host types in Unpaywall in this section. However, we now want to go into more detail and consider evidence types. Various articles are associated with multiple evidence types in Unpaywall as mentioned at the beginning of this section, so we examine the intersection between evidence types in the next step.
 
 ```{python}
 EVIDENCE_SINGLE_CAT_08_12_QUERY = f"""
@@ -769,7 +775,7 @@ evidence_categories_df = evidence_categories_df.groupby(['ev_cat']) \
 evidence_categories_df.head()
 ```
 
-Again, we merge our dataframe with a previous created dataframe called `evidence_df`. Then we compute the frequency of open access full-texts related to a single data source. The result can be contrasted with the total number of articles found in each evidence type.
+Again, we merge our dataframe with a previously created dataframe called `evidence_df`. Then we compute the frequency of open access full-texts related to a single data source. The result can be contrasted with the total number of articles found in each evidence type.
 
 ```{python}
 evidence_single_cat_df = evidence_df.groupby(['evidence']) \
@@ -849,11 +855,13 @@ plt.show()
 knitr::include_graphics('./media/figures/6.png', dpi=NA)
 ```
 
-While openly forms of open access provision identified via pdf or license are still evidence types with a most often unique appearance, it can be seen that the share has decreased, compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
+While forms of open access provision identified via pdf or license are still the evidence types that appear uniquely most often, it can be seen that the share has decreased, compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
 
 To visualize the intersection between multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package which is better maintained in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset). It offers better support for pandas and is also well documented. Especially the input format for the UpSet plot is well described.
 
-The input format can be generated with the `from_memberships` method. It accepts two parameters: a nested list with elements corresponding to a set and secondly a list containing additional data which has the same length as the nested list.
+The input format can be generated with the `from_memberships` function provided by UpSetPlot. It accepts two parameters: a nested list with elements corresponding to a set and secondly a list containing additional data which has the same length as the nested list. Oddly, the parameters `intersection_plot_elements` and `totals_plot_elements` from the `UpSet` class adjust the aspect ratio of the corresponding subplots in the UpSet figure and not the actual limit of intersections and sets to display, as it should be. 
+
+Considering this issue, we create a subset of the fifteen most frequent evidence type combinations manually. Therefore, the set sizes of the respective evidence types depend on the number of articles extracted in the subset rather than the total number of articles.
 
 ```{python}
 evidence_categories_upset_df = evidence_categories_df.groupby(['ev_cat']) \
@@ -864,7 +872,7 @@ evidence_categories_upset_df = evidence_categories_df.groupby(['ev_cat']) \
 ```
 
 ```{python}
-# subset of fifteen most frequent distinct evidence types combinations
+# subset of the fifteen most frequent evidence type combinations
 evidence_categories_upset_most_frequent = evidence_categories_upset_df[:15]
 
 ev_list = evidence_categories_upset_most_frequent.ev_cat.tolist()
@@ -881,7 +889,7 @@ axes = upsetplot.UpSet(evidence_categories_upset_expr,
                 sort_categories_by='cardinality',
                 element_size=20, 
                 intersection_plot_elements=15, 
-                totals_plot_elements=7
+                totals_plot_elements=9
                ).plot(fig=fig)
 
 axes['intersections'].yaxis.grid(False)
@@ -891,7 +899,7 @@ axes['totals'].xaxis.grid(False)
 # reduce overlap with text
 plt.subplots_adjust(left=0, bottom=0, right=1.1, top=1, wspace=0, hspace=0)
 
-fig.text(0.1, -0.07, 'Set Size', ha='center', 
+fig.text(0.1, -0.07, 'Set size', ha='center', 
          fontdict={'fontsize': 10, 'fontweight': 500})
 
 # delete shading axis for better readability
@@ -904,10 +912,16 @@ plt.show()
 knitr::include_graphics('./media/figures/7.png', dpi=NA)
 ```
 
+It can be seen that open access provision identified through license information or an openly available pdf on the publisher’s website overlaps more often with repository-based evidence types than publisher-based evidence sources like journals with respect to the subset. Moreover, the intersection size of articles found via semantic scholar lookup and openly avaiable pdf’s is the highest, besides singletons. We can also see that multiple repositories constribute to an intersection, which means that an open access full-text is often available by several repositories.
+
 ## Discussion and Conclusion
 
-In this blog post, we provided an updated analysis of open access evidences in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly we can interpret upcoming trends more precisely.
+In this blog post, we provided an updated analysis of open access evidence in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly, we can interpret upcoming trends more precisely.
 
-Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. Though the results should be viewed with caution, since we have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types. We can also confirm the rise of repositories as hosting provider of online content. Despite that, publishing in DOAJ-listed journals is also slowly becoming more popular.
+Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. However, the results should be viewed with caution, since we have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types. We can also confirm the rise of repositories as hosting provider of online content. Despite that, the share of articles published in DOAJ listed journals rose as well. Possible reasons for this are that more open access journals are registered with DOAJ by now and that publishing in DOAJ-listed journals is slowly becoming more popular.
 
-Additionally this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we would be pleased to facilitate and encourage R users to work with Python, as well as Python users to work with the Unpaywall database.
+Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we would be pleased to facilitate and encourage R users to work with Python, as well as Python users to work with the Unpaywall database.
+
+## Acknowledgments {.appendix}
+
+We acknowledge financial support from the the Federal Ministry of Education and Research of Germany (BMBF) in the framework [Quantitative research on the science sector](https://www.wihoforschung.de/en/quantitative-research-on-the-science-sector-1573.php) (Project: "OAUNI Entwicklung und Einflussfaktoren des Open-Access-Publizierens an Universitäten in Deutschland", Förderkennzeichen: 01PU17023A).
