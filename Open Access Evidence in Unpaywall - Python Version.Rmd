@@ -917,7 +917,6 @@ It can be seen that open access provision identified through license information
 ## Discussion and Conclusion
 
 In this blog post, we provided an updated analysis of open access evidence in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly, we can interpret upcoming trends more precisely.
-<<<<<<< HEAD
 
 Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. However, the results should be viewed with caution, since we have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types. We can also confirm the rise of repositories as hosting provider of online content. Despite that, the share of articles published in DOAJ listed journals rose as well. Possible reasons for this are that more open access journals are registered with DOAJ by now and that publishing in DOAJ-listed journals is slowly becoming more popular.
 
@@ -926,9 +925,3 @@ Additionally, this work demonstrates similarities between data analysis in Pytho
 ## Acknowledgments {.appendix}
 
 We acknowledge financial support from the the Federal Ministry of Education and Research of Germany (BMBF) in the framework [Quantitative research on the science sector](https://www.wihoforschung.de/en/quantitative-research-on-the-science-sector-1573.php) (Project: "OAUNI Entwicklung und Einflussfaktoren des Open-Access-Publizierens an Universitäten in Deutschland", Förderkennzeichen: 01PU17023A).
-=======
-
-Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. However, the results should be viewed with caution, since we have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types. We can also confirm the rise of repositories as hosting provider of online content. Despite that, the share of articles published in DOAJ listed journals rose as well. Possible reasons for this are that more open access journals are registered with DOAJ by now and that publishing in DOAJ-listed journals is slowly becoming more popular.
-
-Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we would be pleased to facilitate and encourage R users to work with Python, as well as Python users to work with the Unpaywall database.
->>>>>>> a8662169d3d23a58b09ce9ef1a96fb49da82fe9d
