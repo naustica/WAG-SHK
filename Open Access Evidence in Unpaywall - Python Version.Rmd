@@ -44,21 +44,21 @@ The setup for the Google BigQuery Python client is very simple. Firstly, we impo
 client = bigquery.Client(project='api-project-764811344545')
 ```
 
-Like in the aforementioned blog article, also the recent dataset is stored in two tables, containing records between 2008 and February 2020. For the analysis we will restrict the dataset being used here to publication years 2008 until 2018, the time period covered in the previous post. For reusability, we define two variables which are holding the tables' names to call them in SQL queries. We are also using the improved string formatting syntax which is a new feature since Python 3.6.
+Like in the aforementioned blog article, also the recent dataset is stored in two tables, containing records between 2008 and February 2020. For the analysis we will restrict the dataset being used here to publication years 2008 until 2019, the time period covered in the previous post plus the recent year 2019. For reusability, we define two variables which are holding the tables' names to call them in SQL queries. We are also using the improved string formatting syntax which is a new feature since Python 3.6.
 
 ```{python}
 # database snapshots
 upw_08_12 = '`oadoi_full.mongo_upwFeb20_08_12`'
-upw_13_18 = '`oadoi_full.mongo_upwFeb20_13_20`'
+upw_13_19 = '`oadoi_full.mongo_upwFeb20_13_20`'
 ```
 
-We can query the project-database by using the `query` method on our created client object. In this example we were requesting ten journal articles that were published in 2018. We can pass the SQL query simply as a string into our `query` method. Next we can chain the `to_dataframe` method on our query to get a pandas DataFrame.
+We can query the project-database by using the `query` method on our created client object. In this example we were requesting ten journal articles that were published in 2019. We can pass the SQL query simply as a string into our `query` method. Next we can chain the `to_dataframe` method on our query to get a pandas DataFrame.
 
 ```{python}
 client.query(f"""
             SELECT * 
-            FROM {upw_13_18} 
-            WHERE year=2018 AND genre="journal-article" 
+            FROM {upw_13_19} 
+            WHERE year=2019 AND genre="journal-article" 
             LIMIT 10
             """).to_dataframe()
 ```
@@ -83,7 +83,7 @@ paratext_08_12 = client.query(f"""
                         WHERE genre="journal-article"
                         """).to_dataframe()
 
-paratext_13_18 = client.query(f"""
+paratext_13_19 = client.query(f"""
                         SELECT 
                             COUNT(nullif(is_paratext = true, false)) 
                                 AS number_of_paratexts,
@@ -91,14 +91,14 @@ paratext_13_18 = client.query(f"""
                                 AS number_of_all_dois,
                         FROM (
                             SELECT DISTINCT(doi), is_paratext, year, genre 
-                            FROM {upw_13_18} 
+                            FROM {upw_13_19} 
                             )
-                        WHERE year<2019 AND genre="journal-article"
+                        WHERE year<2020 AND genre="journal-article"
                         """).to_dataframe()
 ```
 
 ```{python eval=FALSE}
-paratext_df = pd.concat([paratext_08_12, paratext_13_18])
+paratext_df = pd.concat([paratext_08_12, paratext_13_19])
 paratext_df = paratext_df.sum().to_frame().transpose()
 paratext_df = paratext_df.eval('prop = (number_of_paratexts/number_of_all_dois) * 100')
 paratext_df.prop = paratext_df.prop.apply(lambda x: '{0:.2f}'.format(x))
@@ -118,11 +118,11 @@ Table: Table 1: Number of paratexts in Unpaywall.
 
 |   Number of DOI´s identified as paratext |   Number of all DOI´s |   Proportion of all Paratexts in % |
 |-----------------------------------------:|----------------------:|-----------------------------------:|
-|                                   284204 |              31900224 |                               0.89 |
+|                                   321385 |              35875237 |                               0.90 |
 
 :::
 
-Yet, the proportion of paratexts in our dataset amounts to approximately 1%. In total, 284204 paratexts are linked to a specific DOI. We can also see that 31,900,224 distinct DOIs of `genre` `journal-article` are included in our excerpt of the current database snapshot, containing publications from 2008 onwards.
+Yet, the proportion of paratexts in our dataset amounts to approximately 1%. In total, 321385 paratexts are linked to a specific DOI. We can also see that 35,875,237 distinct DOIs of `genre` `journal-article` are included in our excerpt of the current database snapshot, containing publications from 2008 onwards.
 
 ## Open Access availability (is_oa)
 
@@ -138,16 +138,16 @@ oa_08_12 = client.query(f"""
                         GROUP BY year, is_oa
                         """).to_dataframe()
 
-oa_13_18 = client.query(f"""
+oa_13_19 = client.query(f"""
                         SELECT year, is_oa, COUNT(DISTINCT(doi)) AS n 
-                        FROM {upw_13_18} 
-                        WHERE year<2019 AND genre="journal-article" AND is_paratext=False
+                        FROM {upw_13_19} 
+                        WHERE year<2020 AND genre="journal-article" AND is_paratext=False
                         GROUP BY year, is_oa
                         """).to_dataframe()
 ```
 
 ```{python}
-df = pd.concat([oa_08_12, oa_13_18])
+df = pd.concat([oa_08_12, oa_13_19])
 df.year = pd.to_datetime(df.year.apply(lambda x: str(x) + "-01-01"))
 df['prop'] = df.groupby(['year'])['n'].transform(lambda x: x / x.sum())
 df = df.sort_values(by=['year', 'is_oa'], ascending=[True, False]).reset_index(drop=True)
@@ -176,7 +176,7 @@ ax = df.groupby(['year', 'is_oa'], sort=False) \
                        color=['#56B4E9', '#b3b3b3a0'])
 
 ax.grid(False, which='both', axis='x')
-ax.set_xlim(37.5, 48.5)
+ax.set_xlim(37.5, 49.5)
 handles, labels = ax.get_legend_handles_labels()
 plt.box(False)
 
@@ -200,7 +200,7 @@ plt.show()
 knitr::include_graphics('./media/figures/1.png', dpi=NA)
 ```
 
-As expected, the total number of journal articles has increased, compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from February 2020 has increased by 1.4% (regardless of paratexts that were not specified in previous database snapshots) in comparison to the February 2019 data dump used in the original blog post. In addition, the share of open access articles has increased by 6%. Overall, 13,527,352 articles that were published between 2008 and 2018 are freely available by February 2020.
+As expected, the total number of journal articles has increased, compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from February 2020 has increased by 14% (regardless of paratexts that were not specified in previous database snapshots) in comparison to the findings from the original blog post. In addition, the share of open access articles has increased by 7%. Overall, 15,487,801 articles that were published between 2008 and 2019 are freely available by February 2020.
 
 ## Unpaywall Open Access Hosting Types (host_type)
 
@@ -215,11 +215,11 @@ HOST_TYPE_08_12_QUERY = f"""
                         GROUP BY year, host_type, journal_is_in_doaj
                         """
 
-HOST_TYPE_13_18_QUERY = f"""
+HOST_TYPE_13_19_QUERY = f"""
                         SELECT year, host_type, journal_is_in_doaj, 
                             COUNT(DISTINCT(doi)) AS number_of_articles 
-                        FROM {upw_13_18}, UNNEST (oa_locations) 
-                        WHERE genre="journal-article" AND year<2019 AND is_best=true 
+                        FROM {upw_13_19}, UNNEST (oa_locations) 
+                        WHERE genre="journal-article" AND year<2020 AND is_best=true 
                             AND is_paratext=False
                         GROUP BY year, host_type, journal_is_in_doaj
                         """
@@ -229,9 +229,9 @@ Like in the original blog article, we create a `host` column with the pandas pro
 
 ```{python}
 host_type_08_12_query_df = client.query(HOST_TYPE_08_12_QUERY).to_dataframe()
-host_type_13_18_query_df = client.query(HOST_TYPE_13_18_QUERY).to_dataframe()
+host_type_13_19_query_df = client.query(HOST_TYPE_13_19_QUERY).to_dataframe()
 
-host_type_df = pd.concat([host_type_08_12_query_df, host_type_13_18_query_df])
+host_type_df = pd.concat([host_type_08_12_query_df, host_type_13_19_query_df])
 host_type_df.year = pd.to_datetime(host_type_df.year.apply(lambda x: str(x) + "-01-01"))
 host_type_df = host_type_df.sort_values(by=['year']).reset_index(drop=True)
 
@@ -252,7 +252,7 @@ x = all_articles['year'].dt.year
 y_total = all_articles.number_of_articles
 
 plt.style.use('seaborn-whitegrid')
-plt.rcParams['figure.figsize'] = [11, 3.5]
+plt.rcParams['figure.figsize'] = [12, 3.8]
 
 fig, axes = plt.subplots(nrows=1, ncols=3)
 
@@ -300,7 +300,7 @@ plt.show()
 knitr::include_graphics('./media/figures/2.png', dpi=NA)
 ```
 
-As can be seen from the figure, the proportion of open access articles that are accessible through journals which are not listed in DOAJ has rapidly increased in the year 2018 in comparison to the previous results. Nonetheless, the overall share of articles obtained from Journals that are not listed in DOAJ has decreased from 56% to 50%. Consequently, the share of open access articles provided by DOAJ-listed journals has increased. 
+As can be seen from the figure, the proportion of open access articles that are accessible through journals which are not listed in DOAJ has rapidly increased in the year 2018 in comparison to the previous results. Nonetheless, the overall share of articles obtained from Journals that are not listed in DOAJ has decreased from 56% to 51%. Consequently, the share of open access articles provided by DOAJ-listed journals has increased.
 
 ## Unpaywall Open Access Evidence Types (evidence)
 
@@ -315,22 +315,22 @@ EVIDENCE_08_12_QUERY = f"""
                         GROUP BY evidence, year, is_best
                         """
 
-EVIDENCE_13_18_QUERY = f"""
+EVIDENCE_13_19_QUERY = f"""
                         SELECT evidence, year, is_best, 
                             COUNT(DISTINCT(doi)) AS number_of_articles 
-                        FROM {upw_13_18}, UNNEST (oa_locations) 
-                        WHERE genre="journal-article" AND year < 2019 AND is_paratext=False
+                        FROM {upw_13_19}, UNNEST (oa_locations) 
+                        WHERE genre="journal-article" AND year < 2020 AND is_paratext=False
                         GROUP BY evidence, year, is_best
                         """
 ```
 
 ```{python}
 evidence_08_12 = client.query(EVIDENCE_08_12_QUERY).to_dataframe()
-evidence_13_18 = client.query(EVIDENCE_13_18_QUERY).to_dataframe()
+evidence_13_19 = client.query(EVIDENCE_13_19_QUERY).to_dataframe()
 ```
 
 ```{python}
-evidence_df = pd.concat([evidence_08_12, evidence_13_18])
+evidence_df = pd.concat([evidence_08_12, evidence_13_19])
 evidence_df.year = pd.to_datetime(evidence_df.year.apply(lambda x: str(x) + "-01-01"))
 
 evidence_df.head()
@@ -380,26 +380,26 @@ Table: Table 2: Number of articles per evidence type.
 
 |    | Evidence Types                                           |   Number of Articles |   Proportion of all Articles in % |   Cumulative Proportion in % |
 |---:|:---------------------------------------------------------|---------------------:|----------------------------------:|-----------------------------:|
-|  0 | oa repository (via OAI-PMH doi match)                    |              4829188 |                             16.76 |                        16.76 |
-|  1 | open (via free pdf)                                      |              4733697 |                             16.43 |                        33.19 |
-|  2 | oa repository (semantic scholar lookup)                  |              4317376 |                             14.98 |                        48.18 |
-|  3 | open (via page says license)                             |              4027715 |                             13.98 |                        62.15 |
-|  4 | oa journal (via doaj)                                    |              3596329 |                             12.48 |                        74.64 |
-|  5 | oa repository (via pmcid lookup)                         |              3308388 |                             11.48 |                        86.12 |
-|  6 | oa repository (via OAI-PMH title and first author match) |              1789527 |                              6.21 |                        92.33 |
-|  7 | oa journal (via observed oa rate)                        |              1095887 |                              3.80 |                        96.13 |
-|  8 | open (via crossref license)                              |               577236 |                              2.00 |                        98.14 |
-|  9 | open (via free article)                                  |               193003 |                              0.67 |                        98.81 |
-| 10 | open (via page says Open Access)                         |                94117 |                              0.33 |                        99.13 |
-| 11 | oa journal (via publisher name)                          |                74289 |                              0.26 |                        99.39 |
-| 12 | open (via crossref license, author manuscript)           |                71386 |                              0.25 |                        99.64 |
-| 13 | oa repository (via OAI-PMH title match)                  |                59580 |                              0.21 |                        99.85 |
-| 14 | oa repository (via OAI-PMH title and last author match)  |                44073 |                              0.15 |                       100.00 |
+|  0 | open (via free pdf)                                      |              5342059 |                             16.33 |                        16.33 |
+|  1 | oa repository (via OAI-PMH doi match)                    |              5069032 |                             15.5  |                        31.83 |
+|  2 | open (via page says license)                             |              4948332 |                             15.13 |                        46.96 |
+|  3 | oa repository (semantic scholar lookup)                  |              4621741 |                             14.13 |                        61.09 |
+|  4 | oa journal (via doaj)                                    |              4320534 |                             13.21 |                        74.30 |
+|  5 | oa repository (via pmcid lookup)                         |              3704354 |                             11.33 |                        85.63 |
+|  6 | oa repository (via OAI-PMH title and first author match) |              1950563 |                              5.96 |                        91.59 |
+|  7 | oa journal (via observed oa rate)                        |              1508233 |                              4.61 |                        96.20 |
+|  8 | open (via crossref license)                              |               614330 |                              1.88 |                        98.08 |
+|  9 | open (via free article)                                  |               265035 |                              0.81 |                        98.89 |
+| 10 | open (via page says Open Access)                         |                95838 |                              0.29 |                        99.18 |
+| 11 | oa journal (via publisher name)                          |                77084 |                              0.24 |                        99.42 |
+| 12 | open (via crossref license, author manuscript)           |                75537 |                              0.23 |                        99.65 |
+| 13 | oa repository (via OAI-PMH title match)                  |                67689 |                              0.21 |                        99.86 |
+| 14 | oa repository (via OAI-PMH title and last author match)  |                46905 |                              0.14 |                       100.00 |
 | 15 | manual                                                   |                   29 |                              0.00 |                       100.00 |
 | 16 | hybrid (via page says license)                           |                    1 |                              0.00 |                       100.00 |
 :::
 
-Interestingly, the evidence type with the third highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, we can identify the same phenomenon as in the previous work, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, we will collate these evidence types in the category `other`.
+Interestingly, the evidence type with the fourth highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, we can identify the same phenomenon as in the previous work, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, we will collate these evidence types in the category `other`.
 
 ```{python}
 sum_other = articles_per_type_df \
@@ -501,7 +501,7 @@ plt.show()
 knitr::include_graphics('./media/figures/3.png', dpi=NA)
 ```
 
-The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020. Furthermore we can observe an increase of articles in repositories. Indeed, the evidence type with most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen. 
+The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020, besides the additonal observation of the year 2019. Furthermore we can observe an increase of articles in repositories. Indeed, the evidence type with the second most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen. 
 
 To distinguish the classification as best open access location of data sources by Unpaywall over time, we again make use of matplotlib. Although the FacetGrid function provided by seaborn would be very useful for this task it unfortunately doesn´t support stacked plots as mentioned in this [issue](https://github.com/mwaskom/seaborn/issues/1485) on GitHub.
 
@@ -600,15 +600,15 @@ HOST_TYPE_INTERSECT_08_12_QUERY = f"""
                                     ORDER BY number_of_articles DESC
                                     """
 
-HOST_TYPE_INTERSECT_13_18_QUERY = f"""
+HOST_TYPE_INTERSECT_13_19_QUERY = f"""
                                     SELECT year, host_type_count, 
                                         COUNT(DISTINCT(doi)) AS number_of_articles 
                                     FROM 
                                         (SELECT doi, year, 
                                         STRING_AGG(DISTINCT(host_type) 
                                         ORDER BY host_type) AS host_type_count
-                                        FROM {upw_13_18}, UNNEST (oa_locations) 
-                                        WHERE genre="journal-article" AND year < 2019 
+                                        FROM {upw_13_19}, UNNEST (oa_locations) 
+                                        WHERE genre="journal-article" AND year < 2020 
                                             AND is_paratext=False
                                         GROUP BY doi, year) 
                                     GROUP BY host_type_count, year 
@@ -620,9 +620,9 @@ We start by quering the project-database and setting up our dataframe. Then we w
 
 ```{python}
 host_type_08_12_intersect_df = client.query(HOST_TYPE_INTERSECT_08_12_QUERY).to_dataframe()
-host_type_13_18_intersect_df = client.query(HOST_TYPE_INTERSECT_13_18_QUERY).to_dataframe()
+host_type_13_19_intersect_df = client.query(HOST_TYPE_INTERSECT_13_19_QUERY).to_dataframe()
 host_type_intersect_df = pd.concat([host_type_08_12_intersect_df, 
-                                    host_type_13_18_intersect_df])
+                                    host_type_13_19_intersect_df])
 
 host_type_intersect_df.year = pd.to_datetime(host_type_intersect_df.year \
                                              .apply(lambda x: str(x) + "-01-01"))
@@ -728,7 +728,7 @@ plt.show()
 knitr::include_graphics('./media/figures/5.png', dpi=NA)
 ```
 
-The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 77% of all open access full-texts are available through publisher websites which is a total of 10,448,559 articles. Relatively speaking, this is a decrease by almost 5% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 37%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 40%.
+The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 79% of all open access full-texts are available through publisher websites which is a total of 12,246,005 articles. Relatively speaking, this is a decrease by almost 3% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 40%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.
 
 ### Overlaps between Evidence types
 
@@ -747,13 +747,13 @@ EVIDENCE_SINGLE_CAT_08_12_QUERY = f"""
                                     GROUP BY ev_cat
                                    """
 
-EVIDENCE_SINGLE_CAT_13_18_QUERY = f"""
+EVIDENCE_SINGLE_CAT_13_19_QUERY = f"""
                                     SELECT ev_cat, COUNT(DISTINCT(doi)) AS number_of_articles
                                     FROM 
                                         (SELECT doi, STRING_AGG(DISTINCT(evidence), "&" 
                                         ORDER BY evidence) AS ev_cat
-                                        FROM {upw_13_18}, UNNEST (oa_locations)
-                                        WHERE genre="journal-article" AND year < 2019
+                                        FROM {upw_13_19}, UNNEST (oa_locations)
+                                        WHERE genre="journal-article" AND year < 2020
                                             AND is_paratext=False
                                         GROUP BY doi
                                         )
@@ -763,9 +763,9 @@ EVIDENCE_SINGLE_CAT_13_18_QUERY = f"""
 
 ```{python}
 evidence_categories_08_12_df = client.query(EVIDENCE_SINGLE_CAT_08_12_QUERY).to_dataframe()
-evidence_categories_13_18_df = client.query(EVIDENCE_SINGLE_CAT_13_18_QUERY).to_dataframe()
+evidence_categories_13_19_df = client.query(EVIDENCE_SINGLE_CAT_13_19_QUERY).to_dataframe()
 evidence_categories_df = pd.concat([evidence_categories_08_12_df, 
-                                    evidence_categories_13_18_df])
+                                    evidence_categories_13_19_df])
 
 evidence_categories_df = evidence_categories_df.groupby(['ev_cat']) \
                                     .sum().reset_index() \
@@ -855,7 +855,7 @@ plt.show()
 knitr::include_graphics('./media/figures/6.png', dpi=NA)
 ```
 
-While forms of open access provision identified via pdf or license are still the evidence types that appear uniquely most often, it can be seen that the share has decreased, compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
+While forms of open access provision identified via pdf or license are still one of the evidence types that appear uniquely most often, it can be seen that the share has decreased, compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
 
 To visualize the intersection between multiple evidence types, we are using the [UpSetPlot](https://upsetplot.readthedocs.io/en/stable/) package which is better maintained in contrast to [py-upset](https://github.com/ImSoErgodic/py-upset). It offers better support for pandas and is also well documented. Especially the input format for the UpSet plot is well described.
 
@@ -912,13 +912,13 @@ plt.show()
 knitr::include_graphics('./media/figures/7.png', dpi=NA)
 ```
 
-It can be seen that open access provision identified through license information or an openly available pdf on the publisher’s website overlaps more often with repository-based evidence types than publisher-based evidence sources like journals with respect to the subset. Moreover, the intersection size of articles found via semantic scholar lookup and openly avaiable pdf’s is the highest, besides singletons. We can also see that multiple repositories constribute to an intersection, which means that an open access full-text is often available by several repositories.
+It can be seen that an even distribution of intersection between publisher-based evidence sources and repository-based evidence types exists with respect to the subset. We can also observe that it is common that multiple repositories contribute to an intersection, which means that an open access full-text is often available by several repositories.
 
 ## Discussion and Conclusion
 
-In this blog post, we provided an updated analysis of open access evidence in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 13,527,352 scholarly articles in Unpaywall in the period from 2008 to 2018, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly, we can interpret upcoming trends more precisely.
+In this blog post, we provided an updated analysis of open access evidence in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 15,487,801 scholarly articles in Unpaywall in the period from 2008 to 2019, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly, we can interpret upcoming trends more precisely.
 
-Based on the previous results, our analysis exposes an increase of open access full-texts by 6% from 37% to 43%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. However, the results should be viewed with caution, since we have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types. We can also confirm the rise of repositories as hosting provider of online content. Despite that, the share of articles published in DOAJ listed journals rose as well. Possible reasons for this are that more open access journals are registered with DOAJ by now and that publishing in DOAJ-listed journals is slowly becoming more popular.
+Based on the previous results, our analysis exposes an increase of open access full-texts by 7% from 37% to 44%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. However, the results should be viewed with caution, since we have ancillary observed the year 2019 and have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types, besides regular publications in 2019. We can also confirm the rise of repositories as hosting provider of online content. Despite that, the share of articles published in DOAJ listed journals rose as well. Possible reasons for this are that more open access journals are registered with DOAJ by now and that publishing in DOAJ-listed journals is slowly becoming more popular.
 
 Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, we would be pleased to facilitate and encourage R users to work with Python, as well as Python users to work with the Unpaywall database.
 
