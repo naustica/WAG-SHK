@@ -25,8 +25,8 @@
   
   
   <!--  https://schema.org/Article -->
-  <meta property="article:published" itemprop="datePublished" content="2020-03-09" />
-  <meta property="article:created" itemprop="dateCreated" content="2020-03-09" />
+  <meta property="article:published" itemprop="datePublished" content="2020-03-10" />
+  <meta property="article:created" itemprop="dateCreated" content="2020-03-10" />
   <meta name="article:author" content="Nick Haupka" />
   
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
@@ -44,7 +44,7 @@
   <!--radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","output"]}},"value":[{"type":"character","attributes":{},"value":["Open Access Evidence in Unpaywall using Python"]},{"type":"character","attributes":{},"value":["Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Nick Haupka"]}]}]},{"type":"character","attributes":{},"value":["2020-03-09"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","creative_commons","output"]}},"value":[{"type":"character","attributes":{},"value":["Open Access Evidence in Unpaywall using Python"]},{"type":"character","attributes":{},"value":["Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Nick Haupka"]}]}]},{"type":"character","attributes":{},"value":["2020-03-10"]},{"type":"character","attributes":{},"value":["CC BY"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -1932,7 +1932,7 @@ distill-header .nav a {
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Open Access Evidence in Unpaywall using Python","description":"Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.","authors":[{"author":"Nick Haupka","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#"}],"publishedDate":"2020-03-09T00:00:00.000+01:00","citationText":"Haupka, 2020"}
+{"title":"Open Access Evidence in Unpaywall using Python","description":"Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, we discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, we build upon the results of an existing blog article which used R and provide a new python implementation.","authors":[{"author":"Nick Haupka","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#"}],"publishedDate":"2020-03-10T00:00:00.000+01:00","citationText":"Haupka, 2020"}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -1950,7 +1950,7 @@ distill-header .nav a {
   
   Nick Haupka
   
-<br />2020-03-09
+<br />2020-03-10
 </div>
 
 <div class="d-article">
@@ -2362,7 +2362,7 @@ articles_per_type_table</code></pre>
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">oa repository (via OAI-PMH doi match)</td>
 <td style="text-align: right;">5069032</td>
-<td style="text-align: right;">15.5</td>
+<td style="text-align: right;">15.50</td>
 <td style="text-align: right;">31.83</td>
 </tr>
 <tr class="odd">
@@ -3014,7 +3014,7 @@ Figure 7: Most frequent combinations of evidence types.
 </p>
 </div>
 </div>
-<p>It can be seen that an even distribution of intersection between publisher-based evidence sources and repository-based evidence types exists with respect to the subset. We can also observe that it is common that multiple repositories contribute to an intersection, which means that an open access full-text is often available by several repositories.</p>
+<p>It can be seen that there is an even distribution of intersections between publisher-based evidence sources and repository-based evidence types with respect to the subset. Apparently, it is also common that multiple repositories contribute to an intersection, which means that an open access full-text is often available by several repositories.</p>
 <h2 id="discussion-and-conclusion">Discussion and Conclusion</h2>
 <p>In this blog post, we provided an updated analysis of open access evidence in Unpaywall by examining database snapshots obtained from Unpaywall. Using Python, we were able to find 15,487,801 scholarly articles in Unpaywall in the period from 2008 to 2019, that are freely available. Fortunately, we can compare these results with the previous database snapshot from February 2019 which were described in the mentioned blog article. Thusly, we can interpret upcoming trends more precisely.</p>
 <p>Based on the previous results, our analysis exposes an increase of open access full-texts by 7% from 37% to 44%. Furthermore, we were able to identify new evidence types that were introduced in the recently released database snapshots. However, the results should be viewed with caution, since we have ancillary observed the year 2019 and have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, we suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types, besides regular publications in 2019. We can also confirm the rise of repositories as hosting provider of online content. Despite that, the share of articles published in DOAJ listed journals rose as well. Possible reasons for this are that more open access journals are registered with DOAJ by now and that publishing in DOAJ-listed journals is slowly becoming more popular.</p>
@@ -3032,7 +3032,10 @@ Figure 7: Most frequent combinations of evidence types.
 <!--radix_placeholder_site_after_body-->
 <!--/radix_placeholder_site_after_body-->
 <!--radix_placeholder_appendices-->
-<div class="appendix-bottom"></div>
+<div class="appendix-bottom">
+<h3 id="reuse">Reuse</h3>
+<p>Text and figures are licensed under Creative Commons Attribution <a rel="license" href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>. The figures that have been reused from other sources don't fall under this license and can be recognized by a note in their caption: &quot;Figure from ...&quot;.</p>
+</div>
 <!--/radix_placeholder_appendices-->
 <!--radix_placeholder_navigation_after_body-->
 <!--/radix_placeholder_navigation_after_body-->

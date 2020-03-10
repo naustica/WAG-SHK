@@ -5,6 +5,7 @@ description: |
 author: 
   - Nick Haupka
 date: "`r Sys.Date()`"
+creative_commons: CC BY
 output: distill::distill_article
 ---
 
@@ -381,7 +382,7 @@ Table: Table 2: Number of articles per evidence type.
 |    | Evidence Types                                           |   Number of Articles |   Proportion of all Articles in % |   Cumulative Proportion in % |
 |---:|:---------------------------------------------------------|---------------------:|----------------------------------:|-----------------------------:|
 |  0 | open (via free pdf)                                      |              5342059 |                             16.33 |                        16.33 |
-|  1 | oa repository (via OAI-PMH doi match)                    |              5069032 |                             15.5  |                        31.83 |
+|  1 | oa repository (via OAI-PMH doi match)                    |              5069032 |                             15.50 |                        31.83 |
 |  2 | open (via page says license)                             |              4948332 |                             15.13 |                        46.96 |
 |  3 | oa repository (semantic scholar lookup)                  |              4621741 |                             14.13 |                        61.09 |
 |  4 | oa journal (via doaj)                                    |              4320534 |                             13.21 |                        74.30 |
@@ -912,7 +913,7 @@ plt.show()
 knitr::include_graphics('./media/figures/7.png', dpi=NA)
 ```
 
-It can be seen that an even distribution of intersection between publisher-based evidence sources and repository-based evidence types exists with respect to the subset. We can also observe that it is common that multiple repositories contribute to an intersection, which means that an open access full-text is often available by several repositories.
+It can be seen that there is an even distribution of intersections between publisher-based evidence sources and repository-based evidence types with respect to the subset. Apparently, it is also common that multiple repositories contribute to an intersection, which means that an open access full-text is often available by several repositories.
 
 ## Discussion and Conclusion
 
