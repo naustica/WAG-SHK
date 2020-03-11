@@ -21,7 +21,7 @@ knitr::opts_chunk$set(
 
 The [Unpaywall](https://unpaywall.org/) database is a collection of millions of scholarly fulltext articles that were harvested from a variety of different repositories and services like [PubMed Central](https://www.ncbi.nlm.nih.gov/pmc/) and [DOAJ](https://doaj.org/). Although Unpaywall offers a REST API to query the Unpaywall database, it is more convenient and efficient to use the provided [database snapshots](https://unpaywall.org/products/snapshot), which are usually released twice a year.
 
-In this blog post, I discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article´s publication on May 7th, 2019, Unpaywall has released new data dumps with up-to-date information about scholarly journal articles. Therefore, it might be interesting to see how the change in data impacts the results of my analysis compared to the previous blog article. For this post I will use the most recent Unpaywall data dump from February 2020.
+In this blog post, I discuss the results from the blog article "[Open Access Evidence in Unpaywall](https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/)" by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article´s publication on May 7th, 2019, Unpaywall has released new data dumps with up-to-date information about scholarly journal articles. Therefore, it might be interesting to see how the change in data impacts the results of my analysis compared to the previous blog article. For this post I used the most recent Unpaywall data dump from February 2020.
 
 In order to query the Unpaywall dataset, which is stored in Google BigQuery, I use the [google-cloud-bigquery](https://googleapis.dev/python/bigquery/latest/index.html) package. By default, this package does not ship with [pandas](https://pandas.pydata.org/). However, I recommend to use this package along with pandas for a better experience. The major reason for this being, that the queried data can easily be exported into a pandas DataFrame. 
 
@@ -35,10 +35,10 @@ import seaborn as sns
 import upsetplot
 ```
 
-The setup for the Google BigQuery Python client is very simple. Firstly, you import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If you didn´t set your credentials for the Google Cloud service yet, Google asks you to verify your client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that the project-database has restricted access.
+The setup for the Google BigQuery Python client is very simple. Firstly, I import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If you didn´t set your credentials for the Google Cloud service yet, Google asks you to verify your client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that the project-database has restricted access.
 
 <aside>
-  Google BigQuery is a paid service (with a large free contingent). If you would like to work with the access-restricted instance, please contact me.
+  Google BigQuery is a paid service (with a large free contingent). If you would like to work with the access-restricted instance, please contact us.
 </aside>
 
 ```{python echo=TRUE, results='hide'}
@@ -53,7 +53,7 @@ upw_08_12 = '`oadoi_full.mongo_upwFeb20_08_12`'
 upw_13_19 = '`oadoi_full.mongo_upwFeb20_13_20`'
 ```
 
-You can query the project-database by using the `query` method on your created client object. In this example I requested ten journal articles that were published in 2019. You can pass the SQL query simply as a string into your `query` method. Next you can chain the `to_dataframe` method on your query to get a pandas DataFrame.
+I can query the project-database by using the `query` method on my created client object. In this example I requested ten journal articles that were published in 2019. I can pass the SQL query simply as a string into your `query` method. Next I can chain the `to_dataframe` method on my query to get a pandas DataFrame.
 
 ```{python}
 client.query(f"""
@@ -80,8 +80,8 @@ paratext_08_12 = client.query(f"""
                         FROM (
                             SELECT DISTINCT(doi), is_paratext, genre 
                             FROM {upw_08_12} 
+                            WHERE genre="journal-article"
                             )
-                        WHERE genre="journal-article"
                         """).to_dataframe()
 
 paratext_13_19 = client.query(f"""
@@ -93,8 +93,8 @@ paratext_13_19 = client.query(f"""
                         FROM (
                             SELECT DISTINCT(doi), is_paratext, year, genre 
                             FROM {upw_13_19} 
+                            WHERE year<2020 AND genre="journal-article"
                             )
-                        WHERE year<2020 AND genre="journal-article"
                         """).to_dataframe()
 ```
 
@@ -243,7 +243,7 @@ host_type_df.loc[host_type_df['journal_is_in_doaj'] == True, 'host'] = 'DOAJ-lis
 host_type_df.head()
 ```
 
-Again, I visualize the data with matplotlib. Unlike ggplots for R, you have a more inconvenient way to prepare and plot data with matplotlib in Python. This starts by iterating over the host types to generate a subplot for each. Although, you can make use of pandas plotting methods to display complicated graphics from DataFrames, it requires much effort to get publication quality figures.
+Again, I visualize the data with matplotlib. Unlike ggplots for R, there is a more inconvenient way to prepare and plot data with matplotlib in Python. This starts by iterating over the host types to generate a subplot for each. Although, I can make use of pandas plotting methods to display complicated graphics from DataFrames, it requires much effort to get publication quality figures.
 
 ```{python eval=FALSE}
 all_articles = host_type_df.groupby(['year'])['number_of_articles'].sum() \
@@ -400,7 +400,7 @@ Table: Table 2: Number of articles per evidence type.
 | 16 | hybrid (via page says license)                           |                    1 |                              0.00 |                       100.00 |
 :::
 
-Interestingly, the evidence type with the fourth highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, you can identify the same phenomenon as in the previous work, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, I will collate these evidence types in the category `other`.
+Interestingly, the evidence type with the fourth highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, the same phenomenon as in the previous work can be observed, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, I will collate these evidence types in the category `other`.
 
 ```{python}
 sum_other = articles_per_type_df \
@@ -502,7 +502,7 @@ plt.show()
 knitr::include_graphics('./media/figures/3.png', dpi=NA)
 ```
 
-The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020, besides the additonal observation of the year 2019. Furthermore you can observe an increase of articles in repositories. Indeed, the evidence type with the second most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen. 
+The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020, besides the additonal observation of the year 2019. Furthermore an increase of articles in repositories can be observed. Indeed, the evidence type with the second most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen. 
 
 To distinguish the classification as best open access location of data sources by Unpaywall over time, I again make use of matplotlib. Although the FacetGrid function provided by seaborn would be very useful for this task it unfortunately doesn´t support stacked plots as mentioned in this [issue](https://github.com/mwaskom/seaborn/issues/1485) on GitHub.
 
@@ -729,7 +729,7 @@ plt.show()
 knitr::include_graphics('./media/figures/5.png', dpi=NA)
 ```
 
-The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 79% of all open access full-texts are available through publisher websites which is a total of 12,246,005 articles. Relatively speaking, this is a decrease by almost 3% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 40%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.
+The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 79% of all open access full-texts are available through publisher websites which is a total of 12,246,005 articles. Relatively speaking, this is a decrease by 3% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 40%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.
 
 ### Overlaps between Evidence types
 
@@ -925,4 +925,4 @@ Additionally, this work demonstrates similarities between data analysis in Pytho
 
 ## Acknowledgments {.appendix}
 
-I acknowledge financial support from the the Federal Ministry of Education and Research of Germany (BMBF) in the framework [Quantitative research on the science sector](https://www.wihoforschung.de/en/quantitative-research-on-the-science-sector-1573.php) (Project: "OAUNI Entwicklung und Einflussfaktoren des Open-Access-Publizierens an Universitäten in Deutschland", Förderkennzeichen: 01PU17023A).
+This work was supported by the Federal Ministry of Education and Research of Germany (BMBF) in the framework [Quantitative research on the science sector](https://www.wihoforschung.de/en/quantitative-research-on-the-science-sector-1573.php) (Project: "OAUNI Entwicklung und Einflussfaktoren des Open-Access-Publizierens an Universitäten in Deutschland", Förderkennzeichen: 01PU17023A).

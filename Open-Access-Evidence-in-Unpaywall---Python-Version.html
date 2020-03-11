@@ -25,8 +25,8 @@
   
   
   <!--  https://schema.org/Article -->
-  <meta property="article:published" itemprop="datePublished" content="2020-03-10" />
-  <meta property="article:created" itemprop="dateCreated" content="2020-03-10" />
+  <meta property="article:published" itemprop="datePublished" content="2020-03-11" />
+  <meta property="article:created" itemprop="dateCreated" content="2020-03-11" />
   <meta name="article:author" content="Nick Haupka" />
   
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
@@ -44,7 +44,7 @@
   <!--radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","creative_commons","output"]}},"value":[{"type":"character","attributes":{},"value":["Open Access Evidence in Unpaywall using Python"]},{"type":"character","attributes":{},"value":["Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, I discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, I build upon the results of an existing blog article which used R and provide a new python implementation.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Nick Haupka"]}]}]},{"type":"character","attributes":{},"value":["2020-03-10"]},{"type":"character","attributes":{},"value":["CC BY"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","description","author","date","creative_commons","output"]}},"value":[{"type":"character","attributes":{},"value":["Open Access Evidence in Unpaywall using Python"]},{"type":"character","attributes":{},"value":["Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, I discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, I build upon the results of an existing blog article which used R and provide a new python implementation.\n"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name"]}},"value":[{"type":"character","attributes":{},"value":["Nick Haupka"]}]}]},{"type":"character","attributes":{},"value":["2020-03-11"]},{"type":"character","attributes":{},"value":["CC BY"]},{"type":"character","attributes":{},"value":["distill::distill_article"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -1932,7 +1932,7 @@ distill-header .nav a {
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"Open Access Evidence in Unpaywall using Python","description":"Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, I discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, I build upon the results of an existing blog article which used R and provide a new python implementation.","authors":[{"author":"Nick Haupka","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#"}],"publishedDate":"2020-03-10T00:00:00.000+01:00","citationText":"Haupka, 2020"}
+{"title":"Open Access Evidence in Unpaywall using Python","description":"Analyzing the open access status of scholarly articles is a challenging task that many libraries, universities and researchers are facing. In this blog post, I discuss a Python based approach for analyzing journal articles using the Unpaywall database. In particular, I build upon the results of an existing blog article which used R and provide a new python implementation.","authors":[{"author":"Nick Haupka","authorURL":"#","affiliation":"&nbsp;","affiliationURL":"#"}],"publishedDate":"2020-03-11T00:00:00.000+01:00","citationText":"Haupka, 2020"}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -1950,7 +1950,7 @@ distill-header .nav a {
   
   Nick Haupka
   
-<br />2020-03-10
+<br />2020-03-11
 </div>
 
 <div class="d-article">
@@ -1958,7 +1958,7 @@ distill-header .nav a {
 
 </div>
 <p>The <a href="https://unpaywall.org/">Unpaywall</a> database is a collection of millions of scholarly fulltext articles that were harvested from a variety of different repositories and services like <a href="https://www.ncbi.nlm.nih.gov/pmc/">PubMed Central</a> and <a href="https://doaj.org/">DOAJ</a>. Although Unpaywall offers a REST API to query the Unpaywall database, it is more convenient and efficient to use the provided <a href="https://unpaywall.org/products/snapshot">database snapshots</a>, which are usually released twice a year.</p>
-<p>In this blog post, I discuss the results from the blog article “<a href="https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/">Open Access Evidence in Unpaywall</a>” by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article´s publication on May 7th, 2019, Unpaywall has released new data dumps with up-to-date information about scholarly journal articles. Therefore, it might be interesting to see how the change in data impacts the results of my analysis compared to the previous blog article. For this post I will use the most recent Unpaywall data dump from February 2020.</p>
+<p>In this blog post, I discuss the results from the blog article “<a href="https://subugoe.github.io/scholcomm_analytics/posts/unpaywall_evidence/">Open Access Evidence in Unpaywall</a>” by Najko Jahn and Anne Hobert by comparing different database snapshots obtained from Unpaywall. Since the article´s publication on May 7th, 2019, Unpaywall has released new data dumps with up-to-date information about scholarly journal articles. Therefore, it might be interesting to see how the change in data impacts the results of my analysis compared to the previous blog article. For this post I used the most recent Unpaywall data dump from February 2020.</p>
 <p>In order to query the Unpaywall dataset, which is stored in Google BigQuery, I use the <a href="https://googleapis.dev/python/bigquery/latest/index.html">google-cloud-bigquery</a> package. By default, this package does not ship with <a href="https://pandas.pydata.org/">pandas</a>. However, I recommend to use this package along with pandas for a better experience. The major reason for this being, that the queried data can easily be exported into a pandas DataFrame.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
@@ -1970,9 +1970,9 @@ import matplotlib.ticker as mtick
 import seaborn as sns
 import upsetplot</code></pre>
 </div>
-<p>The setup for the Google BigQuery Python client is very simple. Firstly, you import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If you didn´t set your credentials for the Google Cloud service yet, Google asks you to verify your client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official <a href="https://cloud.google.com/sdk">Google Cloud SDK</a>. A detailed description on how to authenticate the client can be found <a href="https://googleapis.dev/python/google-api-core/latest/auth.html">here</a>. Notice that the project-database has restricted access.</p>
+<p>The setup for the Google BigQuery Python client is very simple. Firstly, I import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If you didn´t set your credentials for the Google Cloud service yet, Google asks you to verify your client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official <a href="https://cloud.google.com/sdk">Google Cloud SDK</a>. A detailed description on how to authenticate the client can be found <a href="https://googleapis.dev/python/google-api-core/latest/auth.html">here</a>. Notice that the project-database has restricted access.</p>
 <aside>
-Google BigQuery is a paid service (with a large free contingent). If you would like to work with the access-restricted instance, please contact me.
+Google BigQuery is a paid service (with a large free contingent). If you would like to work with the access-restricted instance, please contact us.
 </aside>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
@@ -1985,7 +1985,7 @@ client = bigquery.Client(project='api-project-764811344545')</code></pre>
 upw_08_12 = '`oadoi_full.mongo_upwFeb20_08_12`'
 upw_13_19 = '`oadoi_full.mongo_upwFeb20_13_20`'</code></pre>
 </div>
-<p>You can query the project-database by using the <code>query</code> method on your created client object. In this example I requested ten journal articles that were published in 2019. You can pass the SQL query simply as a string into your <code>query</code> method. Next you can chain the <code>to_dataframe</code> method on your query to get a pandas DataFrame.</p>
+<p>I can query the project-database by using the <code>query</code> method on my created client object. In this example I requested ten journal articles that were published in 2019. I can pass the SQL query simply as a string into your <code>query</code> method. Next I can chain the <code>to_dataframe</code> method on my query to get a pandas DataFrame.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 client.query(f&quot;&quot;&quot;
@@ -2022,8 +2022,8 @@ paratext_08_12 = client.query(f&quot;&quot;&quot;
                         FROM (
                             SELECT DISTINCT(doi), is_paratext, genre 
                             FROM {upw_08_12} 
+                            WHERE genre=&quot;journal-article&quot;
                             )
-                        WHERE genre=&quot;journal-article&quot;
                         &quot;&quot;&quot;).to_dataframe()
 
 paratext_13_19 = client.query(f&quot;&quot;&quot;
@@ -2035,8 +2035,8 @@ paratext_13_19 = client.query(f&quot;&quot;&quot;
                         FROM (
                             SELECT DISTINCT(doi), is_paratext, year, genre 
                             FROM {upw_13_19} 
+                            WHERE year&lt;2020 AND genre=&quot;journal-article&quot;
                             )
-                        WHERE year&lt;2020 AND genre=&quot;journal-article&quot;
                         &quot;&quot;&quot;).to_dataframe()</code></pre>
 </div>
 <div class="layout-chunk" data-layout="l-body">
@@ -2196,7 +2196,7 @@ host_type_df.head()
 #&gt; 
 #&gt; [5 rows x 5 columns]</code></pre>
 </div>
-<p>Again, I visualize the data with matplotlib. Unlike ggplots for R, you have a more inconvenient way to prepare and plot data with matplotlib in Python. This starts by iterating over the host types to generate a subplot for each. Although, you can make use of pandas plotting methods to display complicated graphics from DataFrames, it requires much effort to get publication quality figures.</p>
+<p>Again, I visualize the data with matplotlib. Unlike ggplots for R, there is a more inconvenient way to prepare and plot data with matplotlib in Python. This starts by iterating over the host types to generate a subplot for each. Although, I can make use of pandas plotting methods to display complicated graphics from DataFrames, it requires much effort to get publication quality figures.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 all_articles = host_type_df.groupby(['year'])['number_of_articles'].sum() \
@@ -2473,7 +2473,7 @@ articles_per_type_table</code></pre>
 </tbody>
 </table>
 </div>
-<p>Interestingly, the evidence type with the fourth highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, you can identify the same phenomenon as in the previous work, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, I will collate these evidence types in the category <code>other</code>.</p>
+<p>Interestingly, the evidence type with the fourth highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, the same phenomenon as in the previous work can be observed, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, I will collate these evidence types in the category <code>other</code>.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 sum_other = articles_per_type_df \
@@ -2576,7 +2576,7 @@ Figure 3: Number of articles per evidence type.
 </p>
 </div>
 </div>
-<p>The figure provides two types of evidence that were not specifically mentioned in the previous work: <code>oa repository (semantic scholar lookup)</code> and <code>oa journal (via observed rate)</code>. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020, besides the additonal observation of the year 2019. Furthermore you can observe an increase of articles in repositories. Indeed, the evidence type with the second most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen.</p>
+<p>The figure provides two types of evidence that were not specifically mentioned in the previous work: <code>oa repository (semantic scholar lookup)</code> and <code>oa journal (via observed rate)</code>. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020, besides the additonal observation of the year 2019. Furthermore an increase of articles in repositories can be observed. Indeed, the evidence type with the second most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen.</p>
 <p>To distinguish the classification as best open access location of data sources by Unpaywall over time, I again make use of matplotlib. Although the FacetGrid function provided by seaborn would be very useful for this task it unfortunately doesn´t support stacked plots as mentioned in this <a href="https://github.com/mwaskom/seaborn/issues/1485">issue</a> on GitHub.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
@@ -2812,7 +2812,7 @@ Figure 5: Open access to journal articles by open access hosting location.
 </p>
 </div>
 </div>
-<p>The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 79% of all open access full-texts are available through publisher websites which is a total of 12,246,005 articles. Relatively speaking, this is a decrease by almost 3% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 40%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.</p>
+<p>The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 79% of all open access full-texts are available through publisher websites which is a total of 12,246,005 articles. Relatively speaking, this is a decrease by 3% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 40%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.</p>
 <h3 id="overlaps-between-evidence-types">Overlaps between Evidence types</h3>
 <p>So far, I investigated the overlap of host types in Unpaywall in this section. However, I now want to go into more detail and consider evidence types. Various articles are associated with multiple evidence types in Unpaywall as mentioned at the beginning of this section, so I examine the intersection between evidence types in the next step.</p>
 <div class="layout-chunk" data-layout="l-body">
@@ -3020,7 +3020,7 @@ Figure 7: Most frequent combinations of evidence types.
 <p>Based on the previous results, the analysis exposes an increase of open access full-texts by 7% from 37% to 44%. Furthermore, I was able to identify new evidence types that were introduced in the recently released database snapshots. However, the results should be viewed with caution, since I have ancillary observed the year 2019 and have excluded DOI’s that were identified as paratexts which was not the case in the previous work. Eventually, I suggest that more articles had left closed access and Unpaywall was able to link more DOI’s to articles found in the newly introduced evidence types, besides regular publications in 2019. I can also confirm the rise of repositories as hosting provider of online content. Despite that, the share of articles published in DOAJ listed journals rose as well. Possible reasons for this are that more open access journals are registered with DOAJ by now and that publishing in DOAJ-listed journals is slowly becoming more popular.</p>
 <p>Additionally, this work demonstrates similarities between data analysis in Python and R. Due to the fact that this work is based on translated R source code, I would be pleased to facilitate and encourage R users to work with Python, as well as Python users to work with the Unpaywall database.</p>
 <h2 id="acknowledgments" class="appendix">Acknowledgments</h2>
-<p>I acknowledge financial support from the the Federal Ministry of Education and Research of Germany (BMBF) in the framework <a href="https://www.wihoforschung.de/en/quantitative-research-on-the-science-sector-1573.php">Quantitative research on the science sector</a> (Project: “OAUNI Entwicklung und Einflussfaktoren des Open-Access-Publizierens an Universitäten in Deutschland”, Förderkennzeichen: 01PU17023A).</p>
+<p>This work was supported by the Federal Ministry of Education and Research of Germany (BMBF) in the framework <a href="https://www.wihoforschung.de/en/quantitative-research-on-the-science-sector-1573.php">Quantitative research on the science sector</a> (Project: “OAUNI Entwicklung und Einflussfaktoren des Open-Access-Publizierens an Universitäten in Deutschland”, Förderkennzeichen: 01PU17023A).</p>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>
