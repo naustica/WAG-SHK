@@ -53,7 +53,7 @@ upw_08_12 = '`oadoi_full.mongo_upwFeb20_08_12`'
 upw_13_19 = '`oadoi_full.mongo_upwFeb20_13_20`'
 ```
 
-I can query the project-database by using the `query` method on my created client object. In this example I requested ten journal articles that were published in 2019. I can pass the SQL query simply as a string into your `query` method. Next I can chain the `to_dataframe` method on my query to get a pandas DataFrame.
+I can query the project-database by using the `query` method on my created client object. In this example I requested ten journal articles that were published in 2019. I can pass the SQL query simply as a string into the `query` method. Next I can chain the `to_dataframe` method on my query to get a pandas DataFrame.
 
 ```{python}
 client.query(f"""

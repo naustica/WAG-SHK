@@ -1985,7 +1985,7 @@ client = bigquery.Client(project='api-project-764811344545')</code></pre>
 upw_08_12 = '`oadoi_full.mongo_upwFeb20_08_12`'
 upw_13_19 = '`oadoi_full.mongo_upwFeb20_13_20`'</code></pre>
 </div>
-<p>I can query the project-database by using the <code>query</code> method on my created client object. In this example I requested ten journal articles that were published in 2019. I can pass the SQL query simply as a string into your <code>query</code> method. Next I can chain the <code>to_dataframe</code> method on my query to get a pandas DataFrame.</p>
+<p>I can query the project-database by using the <code>query</code> method on my created client object. In this example I requested ten journal articles that were published in 2019. I can pass the SQL query simply as a string into the <code>query</code> method. Next I can chain the <code>to_dataframe</code> method on my query to get a pandas DataFrame.</p>
 <div class="layout-chunk" data-layout="l-body">
 <pre class="python"><code>
 client.query(f&quot;&quot;&quot;
