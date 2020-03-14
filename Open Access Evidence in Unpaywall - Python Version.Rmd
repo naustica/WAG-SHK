@@ -35,7 +35,7 @@ import seaborn as sns
 import upsetplot
 ```
 
-The setup for the Google BigQuery Python client is very simple. Firstly, I import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If you didn´t set your credentials for the Google Cloud service yet, Google asks you to verify your client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that the project-database has restricted access.
+The setup for the Google BigQuery Python client is pretty straight forward. Firstly, I import bigquery from the google.cloud package and create a client object by passing the project name as a parameter. If you didn´t set your credentials for the Google Cloud service yet, Google asks you to verify your client. This can be done by simply exporting an API-Key provided by Google into the working environment or by installing the official [Google Cloud SDK](https://cloud.google.com/sdk). A detailed description on how to authenticate the client can be found [here](https://googleapis.dev/python/google-api-core/latest/auth.html). Notice that the project-database has restricted access.
 
 <aside>
   Google BigQuery is a paid service (with a large free contingent). If you would like to work with the access-restricted instance, please contact us.
@@ -403,18 +403,14 @@ Table: Table 2: Number of articles per evidence type.
 Interestingly, the evidence type with the fourth highest number of related articles was not included in the database snapshot used in the mentioned blog post. Further, the same phenomenon as in the previous work can be observed, that the least frequent eight evidence types summarized only make up 1.9% of all articles in total. In the following, I will collate these evidence types in the category `other`.
 
 ```{python}
-sum_other = articles_per_type_df \
-                .loc[articles_per_type_df['prop'] < 1] \
-                .number_of_articles \
-                .sum()
+list_of_small_evidence_types = articles_per_type_df \
+                                .loc[articles_per_type_df['prop'] < 1] \
+                                .evidence.tolist()
 
-articles_per_type_other_df = pd.DataFrame([['other', sum_other]], 
-                                          columns=['evidence', 'number_of_articles'])
+articles_per_type_grouped_df = articles_per_type_df.copy()
 
-articles_per_type_keep_df = articles_per_type_df.loc[articles_per_type_df['prop'] > 1]
-
-articles_per_type_grouped_df = pd.concat([articles_per_type_other_df, 
-                                          articles_per_type_keep_df])
+articles_per_type_grouped_df.evidence = articles_per_type_grouped_df \
+                                .evidence.replace(list_of_small_evidence_types, 'other')
 
 articles_per_type_grouped_df = articles_per_type_grouped_df \
                                 .groupby(['evidence']) \
@@ -432,10 +428,6 @@ articles_per_type_grouped_df['cumul'] = articles_per_type_grouped_df.prop.cumsum
 
 ```{python}
 evidence_grouped_df = evidence_df.copy()
-
-list_of_small_evidence_types = articles_per_type_df \
-                                .loc[articles_per_type_df['prop'] < 1] \
-                                .evidence.tolist()
 
 evidence_grouped_df.evidence = evidence_grouped_df \
                                 .evidence.replace(list_of_small_evidence_types, 'other')
@@ -701,7 +693,7 @@ for i, host in enumerate(host_type_intersect_df.host.unique(), 1):
     ax.grid(False, which='both', axis='x')
     ax.set(xlabel='', ylabel='')
     
-    # for readability we hide every second tick on the x axis
+    # for readability I hide every second tick on the x axis
     for label in ax.get_xticklabels()[1::2]:
         label.set_visible(False)
         
