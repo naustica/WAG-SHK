@@ -173,18 +173,18 @@ ax = df.groupby(['year', 'is_oa'], sort=False) \
             ['n'].sum().unstack() \
             .plot.area(figsize=(10,4),
                        alpha=0.8,
+                       xlim=(37.5, 49.5),
                        linewidth=0,
                        color=['#56B4E9', '#b3b3b3a0'])
 
 ax.grid(False, which='both', axis='x')
-ax.set_xlim(37.5, 49.5)
 handles, labels = ax.get_legend_handles_labels()
 plt.box(False)
 
 plt.title('Open Access to Journal Articles', 
-          fontdict={'fontsize': 13, 'fontweight': 600}, pad=10)
-plt.xlabel('Year published', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
-plt.ylabel('Journal Articles', labelpad=10, fontdict={'fontsize': 12, 'fontweight': 500})
+          fontdict={'fontsize': 12, 'fontweight': 600}, pad=10)
+plt.xlabel('Year published', labelpad=10, fontdict={'fontsize': 11, 'fontweight': 500})
+plt.ylabel('Journal Articles', labelpad=10, fontdict={'fontsize': 11, 'fontweight': 500})
 
 plt.legend(handles, ['TRUE', 'FALSE'], 
            title='Is OA?', 
@@ -198,7 +198,7 @@ plt.show()
 ```
 
 ```{r echo=FALSE, layout='l-page', fig.cap='Open access to journal articles according to Unpaywall.', out.extra='style="margin-left: 4%;"'}
-knitr::include_graphics('./media/figures/1.png', dpi=NA)
+knitr::include_graphics('./media/figures/1.svg', dpi=NA)
 ```
 
 As expected, the total number of journal articles has increased, compared to the previous results from the blog article. In fact, the number of articles with a distinct DOI included in the Unpaywall data dump from February 2020 has increased by 14% (regardless of paratexts that were not specified in previous database snapshots) in comparison to the findings from the original blog post. In addition, the share of open access articles has increased by 7%. Overall, 15,487,801 articles that were published between 2008 and 2019 are freely available by February 2020.
@@ -253,9 +253,8 @@ x = all_articles['year'].dt.year
 y_total = all_articles.number_of_articles
 
 plt.style.use('seaborn-whitegrid')
-plt.rcParams['figure.figsize'] = [12, 3.8]
 
-fig, axes = plt.subplots(nrows=1, ncols=3)
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12,3.8))
 
 fig.suptitle('Open Access to Journal Articles by Unpaywall host', 
              fontsize=14, 
@@ -298,7 +297,7 @@ plt.show()
 ```
 
 ```{r echo=FALSE, layout='l-page', fig.cap='Open access to journal articles by open access hosting location.', out.extra='style="margin-left: 4%;"'}
-knitr::include_graphics('./media/figures/2.png', dpi=NA)
+knitr::include_graphics('./media/figures/2.svg', dpi=NA)
 ```
 
 As can be seen from the figure, the proportion of open access articles that are accessible through journals which are not listed in DOAJ has rapidly increased in the year 2018 in comparison to the previous results. Nonetheless, the overall share of articles obtained from Journals that are not listed in DOAJ has decreased from 56% to 51%. Consequently, the share of open access articles provided by DOAJ-listed journals has increased.
@@ -456,8 +455,7 @@ evidence_grouped_plot_df = pd.merge(articles_per_type_grouped_df,
                                     on='evidence')
 
 plt.style.use('seaborn-whitegrid')
-plt.rcParams['figure.figsize'] = [7, 5]
-plt.grid(False, which='both', axis='y')
+fig = plt.figure(figsize=(7,5))
 plt.box(False)
 
 ax1 = sns.barplot('number_of_articles',
@@ -477,12 +475,12 @@ ax2 = sns.barplot('is_best_sum',
                   saturation=1)
 
 plt.title('Number of Open Access Articles per Unpaywall Evidence Type', 
-          fontdict={'fontsize': 13, 'fontweight': 600}, pad=20, x=0.3)
+          fontdict={'fontsize': 12, 'fontweight': 600}, pad=20, x=0.3)
 plt.xlabel('Number of Open Access Articles', labelpad=10, 
-           fontdict={'fontsize': 12, 'fontweight': 500})
+           fontdict={'fontsize': 11, 'fontweight': 500})
 
 plt.ylabel('Evidence Type', labelpad=10, 
-           fontdict={'fontsize': 12, 'fontweight': 500})
+           fontdict={'fontsize': 11, 'fontweight': 500})
 
 plt.legend(title='Is best?', fontsize='medium', bbox_to_anchor=(1.2, 1.05), labelspacing=1.2)
 
@@ -491,7 +489,7 @@ plt.show()
 ```
 
 ```{r echo=FALSE, layout='l-page', fig.cap='Number of articles per evidence type.', out.extra='style="margin-left: 3%;"'}
-knitr::include_graphics('./media/figures/3.png', dpi=NA)
+knitr::include_graphics('./media/figures/3.svg', dpi=NA)
 ```
 
 The figure provides two types of evidence that were not specifically mentioned in the previous work: `oa repository (semantic scholar lookup)` and `oa journal (via observed rate)`. Apparently, these evidence types are responsible for the overall increase in articles between the two data dumps from February 2019 and February 2020, besides the additonal observation of the year 2019. Furthermore an increase of articles in repositories can be observed. Indeed, the evidence type with the second most associated articles is referring to repository locations. However, Unpaywall still prioritises publisher hosted content over repository depositions, as can be seen. 
@@ -569,7 +567,7 @@ plt.show()
 ```
 
 ```{r echo=FALSE, layout='l-page', fig.cap='Development of the number of articles per evidence type over time.', out.extra='style="margin-left: 4%;"'}
-knitr::include_graphics('./media/figures/4.png', dpi=NA)
+knitr::include_graphics('./media/figures/4.svg', dpi=NA)
 ```
 
 ## Overlap of Open Access Provision and Evidence Types
@@ -657,9 +655,8 @@ Again, I will use seaborn to display the results.
 x = host_type_intersect_df['year'].dt.year
 
 plt.style.use('seaborn-whitegrid')
-plt.rcParams['figure.figsize'] = [11, 3.5] 
 
-fig, axes = plt.subplots(nrows=1, ncols=3)
+fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(11, 3.5))
 
 fig.suptitle('Overlap between Open Access Host Types in Unpaywall', 
              fontsize=14, 
@@ -718,7 +715,7 @@ plt.show()
 ```
 
 ```{r echo=FALSE, layout='l-page', fig.cap='Open access to journal articles by open access hosting location.', out.extra='style="margin-left: 4%;"'}
-knitr::include_graphics('./media/figures/5.png', dpi=NA)
+knitr::include_graphics('./media/figures/5.svg', dpi=NA)
 ```
 
 The figure shows that, in terms of percentage, fewer articles were found on publisher websites than in the results of the blog article. Indeed, 79% of all open access full-texts are available through publisher websites which is a total of 12,246,005 articles. Relatively speaking, this is a decrease by 3% compared to the previous results. Also, the proportion of articles that are not archived in a repository has declined from 56% to 40%. Consequently, the proportion of articles that are available from both the publisher websites, as well as those that are archived in a repository have increased from 26% to 39%.
@@ -805,7 +802,6 @@ Next, I visualize the result in a horizontal barplot. For each evidence type I d
 fig, axes = plt.subplots(figsize=(7,5))
 
 plt.style.use('seaborn-whitegrid')
-plt.grid(False, which='both', axis='y')
 plt.box(False)
 
 ax1 = sns.barplot(x=[1] * len(evidence_single_cat_grouped_df), 
@@ -829,12 +825,12 @@ ax2 = sns.barplot(x='prop',
 axes.xaxis.set_major_formatter(mtick.PercentFormatter(1.0))
 
 plt.title('Proportion of Articles per Evidence Type', 
-          fontdict={'fontsize': 13, 'fontweight': 600}, x=0.25, pad=15)
+          fontdict={'fontsize': 12, 'fontweight': 600}, x=0.25, pad=15)
 plt.xlabel('Proportion of Articles', labelpad=10, 
-           fontdict={'fontsize': 12, 'fontweight': 500})
+           fontdict={'fontsize': 11, 'fontweight': 500})
 
 plt.ylabel('Evidence Type', labelpad=10, 
-           fontdict={'fontsize': 12, 'fontweight': 500})
+           fontdict={'fontsize': 11, 'fontweight': 500})
 
 axes.legend(title='Is unique?', 
             fontsize='medium', 
@@ -845,7 +841,7 @@ plt.show()
 ```
 
 ```{r echo=FALSE, layout='l-page', fig.cap='Proportion of articles per evidence type.', out.extra='style="margin-left: 3.5%;"'}
-knitr::include_graphics('./media/figures/6.png', dpi=NA)
+knitr::include_graphics('./media/figures/6.svg', dpi=NA)
 ```
 
 While forms of open access provision identified via pdf or license are still one of the evidence types that appear uniquely most often, it can be seen that the share has decreased, compared to the results from the previous database snapshot. On the other hand, the share of unique occurences of less frequent evidence types which were collated in the category other has increased rapidly.
@@ -902,7 +898,7 @@ plt.show()
 ```
 
 ```{r echo=FALSE, layout='l-page', fig.cap='Most frequent combinations of evidence types.', out.extra='style="margin-left: 2.5%;"'}
-knitr::include_graphics('./media/figures/7.png', dpi=NA)
+knitr::include_graphics('./media/figures/7.svg', dpi=NA)
 ```
 
 It can be seen that there is an even distribution of intersections between publisher-based evidence sources and repository-based evidence types with respect to the subset. Apparently, it is also common that multiple repositories contribute to an intersection, which means that an open access full-text is often available by several repositories.
