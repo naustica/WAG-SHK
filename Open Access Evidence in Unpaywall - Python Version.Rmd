@@ -5,6 +5,7 @@ description: |
 author: 
   - Nick Haupka
 date: "`r Sys.Date()`"
+preview: distill-preview.png
 creative_commons: CC BY
 output: distill::distill_article
 ---
@@ -64,7 +65,7 @@ client.query(f"""
             """).to_dataframe()
 ```
 
-## Paratexts in Unpaywall (`is_paratext`)
+## Paratexts in Unpaywall (is_paratext)
 
 As can be seen from the outcome of the previous query, Unpaywall has recently introduced a new attribute `is_paratext` in the updated February 2020 database snapshot. It contains a boolean value which indicates whether a DOI is linked to a paratext or not. Because additional content to a journal article can also get classified as a `journal article` by the publisher, such as table of contents, it can mislead the analysis of scholarly articles in Unpaywall. Therefore I will ignore DOI´s that are related to paratexts in the following. For more information about the `is_paratext` field visit this [page](https://support.unpaywall.org/support/solutions/articles/44001894783).
 
